@@ -1,0 +1,662 @@
+import Foundation
+import SalaryDomain
+
+/// Every user-facing string in the app.
+///
+/// One entry per string, with all nine translations passed as labelled arguments. The
+/// shape is deliberate: the compiler enforces completeness, so adding a language to
+/// `AppLanguage` breaks `t` until every string is translated and a half-localized build
+/// cannot ship. No bundle, no `.strings` files, no build phase.
+public struct Strings: Sendable {
+    public let language: AppLanguage
+
+    public init(_ language: AppLanguage) { self.language = language }
+
+    private func t(
+        en: String, zh: String, ja: String, ko: String, es: String,
+        fr: String, de: String, pt: String, ms: String
+    ) -> String {
+        switch language {
+        case .english: en
+        case .chinese: zh
+        case .japanese: ja
+        case .korean: ko
+        case .spanish: es
+        case .french: fr
+        case .german: de
+        case .portuguese: pt
+        case .malay: ms
+        }
+    }
+
+    // MARK: Durations
+
+    public func hoursMinutes(_ h: Int, _ m: Int) -> String {
+        t(en: "\(h)h \(m)m", zh: "\(h) 小时 \(m) 分", ja: "\(h)時間\(m)分", ko: "\(h)시간 \(m)분",
+          es: "\(h) h \(m) min", fr: "\(h) h \(m) min", de: "\(h) Std. \(m) Min.",
+          pt: "\(h) h \(m) min", ms: "\(h) jam \(m) min")
+    }
+
+    public func minutesSeconds(_ m: Int, _ s: Int) -> String {
+        t(en: "\(m)m \(s)s", zh: "\(m) 分 \(s) 秒", ja: "\(m)分\(s)秒", ko: "\(m)분 \(s)초",
+          es: "\(m) min \(s) s", fr: "\(m) min \(s) s", de: "\(m) Min. \(s) Sek.",
+          pt: "\(m) min \(s) s", ms: "\(m) min \(s) saat")
+    }
+
+    public func seconds(_ s: Int) -> String {
+        t(en: "\(s)s", zh: "\(s) 秒", ja: "\(s)秒", ko: "\(s)초",
+          es: "\(s) s", fr: "\(s) s", de: "\(s) Sek.", pt: "\(s) s", ms: "\(s) saat")
+    }
+
+    // MARK: Status
+
+    public var dayOff: String {
+        t(en: "Day off", zh: "今天休息", ja: "本日は休み", ko: "오늘은 휴무",
+          es: "Día libre", fr: "Jour de repos", de: "Freier Tag", pt: "Dia de folga",
+          ms: "Hari cuti")
+    }
+
+    public func startsIn(_ d: String) -> String {
+        t(en: "Starts in \(d)", zh: "还有 \(d) 上班", ja: "あと\(d)で開始", ko: "\(d) 후 시작",
+          es: "Empieza en \(d)", fr: "Commence dans \(d)", de: "Beginnt in \(d)",
+          pt: "Começa em \(d)", ms: "Bermula dalam \(d)")
+    }
+
+    public func untilClockOff(_ d: String) -> String {
+        t(en: "\(d) until clock-off", zh: "距离下班 \(d)", ja: "退勤まで\(d)", ko: "퇴근까지 \(d)",
+          es: "\(d) hasta la salida", fr: "\(d) avant la fin", de: "Noch \(d) bis Feierabend",
+          pt: "\(d) até a saída", ms: "\(d) lagi sebelum balik")
+    }
+
+    public func lunchLeft(_ d: String) -> String {
+        t(en: "Lunch break · \(d) left", zh: "午休中 · 还有 \(d)", ja: "休憩中 · あと\(d)",
+          ko: "점심시간 · \(d) 남음", es: "Almuerzo · quedan \(d)",
+          fr: "Pause déjeuner · \(d) restantes", de: "Mittagspause · noch \(d)",
+          pt: "Almoço · faltam \(d)", ms: "Rehat makan · \(d) lagi")
+    }
+
+    public var clockedOff: String {
+        t(en: "Clocked off", zh: "已下班", ja: "退勤済み", ko: "퇴근함",
+          es: "Jornada terminada", fr: "Journée terminée", de: "Feierabend",
+          pt: "Expediente encerrado", ms: "Sudah balik")
+    }
+
+    public var setupIncomplete: String {
+        t(en: "Setup incomplete", zh: "设置不完整", ja: "設定が未完了", ko: "설정 미완료",
+          es: "Configuración incompleta", fr: "Configuration incomplète",
+          de: "Einrichtung unvollständig", pt: "Configuração incompleta",
+          ms: "Tetapan tidak lengkap")
+    }
+
+    // MARK: Menu bar
+
+    public var menuBarSetSalary: String {
+        t(en: "Set salary", zh: "设置薪资", ja: "給与を設定", ko: "급여 설정",
+          es: "Configurar sueldo", fr: "Définir le salaire", de: "Gehalt festlegen",
+          pt: "Definir salário", ms: "Tetapkan gaji")
+    }
+
+    public var menuBarDayOff: String {
+        t(en: "Day off", zh: "休息中", ja: "休み", ko: "휴무",
+          es: "Libre", fr: "Repos", de: "Frei", pt: "Folga", ms: "Cuti")
+    }
+
+    // MARK: Panel
+
+    public var earnedToday: String {
+        t(en: "Earned today", zh: "今日已赚", ja: "本日の収入", ko: "오늘 번 금액",
+          es: "Ganado hoy", fr: "Gagné aujourd'hui", de: "Heute verdient",
+          pt: "Ganho hoje", ms: "Pendapatan hari ini")
+    }
+
+    public var todayProgress: String {
+        t(en: "Today", zh: "今日进度", ja: "本日", ko: "오늘",
+          es: "Hoy", fr: "Aujourd'hui", de: "Heute", pt: "Hoje", ms: "Hari ini")
+    }
+
+    public var perSecond: String {
+        t(en: "Per second", zh: "每秒", ja: "1秒あたり", ko: "초당",
+          es: "Por segundo", fr: "Par seconde", de: "Pro Sekunde",
+          pt: "Por segundo", ms: "Sesaat")
+    }
+
+    public var hourly: String {
+        t(en: "Hourly", zh: "时薪", ja: "時給", ko: "시급",
+          es: "Por hora", fr: "Par heure", de: "Pro Stunde", pt: "Por hora", ms: "Sejam")
+    }
+
+    public var fullDay: String {
+        t(en: "Full day", zh: "满勤一天", ja: "1日分", ko: "하루치",
+          es: "Día completo", fr: "Journée complète", de: "Ganzer Tag",
+          pt: "Dia inteiro", ms: "Sehari penuh")
+    }
+
+    public var monthToDate: String {
+        t(en: "This month", zh: "本月已累计", ja: "今月の累計", ko: "이번 달 누계",
+          es: "Este mes", fr: "Ce mois-ci", de: "Diesen Monat",
+          pt: "Este mês", ms: "Bulan ini")
+    }
+
+    public func workdaysDone(_ done: Int, _ total: Int) -> String {
+        t(en: "\(done) of \(total) workdays done",
+          zh: "已完成 \(done) / \(total) 个工作日",
+          ja: "\(total)日中\(done)日完了",
+          ko: "\(total)일 중 \(done)일 완료",
+          es: "\(done) de \(total) días trabajados",
+          fr: "\(done) sur \(total) jours travaillés",
+          de: "\(done) von \(total) Arbeitstagen",
+          pt: "\(done) de \(total) dias úteis",
+          ms: "\(done) daripada \(total) hari kerja")
+    }
+
+    public var plusToday: String {
+        t(en: "+ today", zh: "+ 今天", ja: "+ 本日", ko: "+ 오늘",
+          es: "+ hoy", fr: "+ aujourd'hui", de: "+ heute", pt: "+ hoje", ms: "+ hari ini")
+    }
+
+    public var setupNotice: String {
+        t(en: "Salary or working hours are not set yet",
+          zh: "薪资或上下班时间还没填好",
+          ja: "給与または勤務時間が未設定です",
+          ko: "급여 또는 근무 시간이 설정되지 않았습니다",
+          es: "El sueldo o el horario aún no están configurados",
+          fr: "Le salaire ou les horaires ne sont pas encore définis",
+          de: "Gehalt oder Arbeitszeiten sind noch nicht festgelegt",
+          pt: "Salário ou horário ainda não configurados",
+          ms: "Gaji atau waktu kerja belum ditetapkan")
+    }
+
+    public var settingsAction: String {
+        t(en: "Settings…", zh: "设置…", ja: "設定…", ko: "설정…",
+          es: "Ajustes…", fr: "Réglages…", de: "Einstellungen…",
+          pt: "Ajustes…", ms: "Tetapan…")
+    }
+
+    public var quitAction: String {
+        t(en: "Quit", zh: "退出", ja: "終了", ko: "종료",
+          es: "Salir", fr: "Quitter", de: "Beenden", pt: "Sair", ms: "Keluar")
+    }
+
+    // MARK: Settings — salary
+
+    public var sectionSalary: String {
+        t(en: "Salary", zh: "薪资", ja: "給与", ko: "급여",
+          es: "Sueldo", fr: "Salaire", de: "Gehalt", pt: "Salário", ms: "Gaji")
+    }
+
+    public var monthlySalary: String {
+        t(en: "Monthly salary", zh: "月薪", ja: "月給", ko: "월급",
+          es: "Sueldo mensual", fr: "Salaire mensuel", de: "Monatsgehalt",
+          pt: "Salário mensal", ms: "Gaji bulanan")
+    }
+
+    /// Month-neutral on purpose: the figure follows whichever month the grid is showing,
+    /// and that month is named directly beneath it.
+    public var workdaysThisMonth: String {
+        t(en: "Workdays", zh: "工作日", ja: "勤務日数", ko: "근무일",
+          es: "Días laborables", fr: "Jours ouvrés", de: "Arbeitstage",
+          pt: "Dias úteis", ms: "Hari kerja")
+    }
+
+    public func days(_ n: Int) -> String {
+        t(en: "\(n) days", zh: "\(n) 天", ja: "\(n)日", ko: "\(n)일",
+          es: "\(n) días", fr: "\(n) jours", de: "\(n) Tage", pt: "\(n) dias", ms: "\(n) hari")
+    }
+
+    public var derivedHourly: String {
+        t(en: "Hourly rate", zh: "推算时薪", ja: "時給換算", ko: "시급 환산",
+          es: "Tarifa por hora", fr: "Taux horaire", de: "Stundensatz",
+          pt: "Valor por hora", ms: "Kadar sejam")
+    }
+
+    public var invalidNotice: String {
+        t(en: "These settings cannot produce an hourly rate — check the salary, workdays and working hours.",
+          zh: "当前设置算不出时薪，请检查薪资、工作日和上下班时间。",
+          ja: "この設定では時給を計算できません。給与・勤務日・勤務時間を確認してください。",
+          ko: "현재 설정으로는 시급을 계산할 수 없습니다. 급여, 근무일, 근무 시간을 확인하세요.",
+          es: "Esta configuración no permite calcular una tarifa por hora — revisa el sueldo, los días y el horario.",
+          fr: "Ces réglages ne permettent pas de calculer un taux horaire — vérifiez le salaire, les jours et les horaires.",
+          de: "Mit diesen Einstellungen lässt sich kein Stundensatz berechnen — prüfe Gehalt, Arbeitstage und Arbeitszeit.",
+          pt: "Estas configurações não permitem calcular um valor por hora — verifique o salário, os dias e o horário.",
+          ms: "Tetapan ini tidak dapat mengira kadar sejam — semak gaji, hari kerja dan waktu kerja.")
+    }
+
+    public var salaryCaption: String {
+        t(en: "Daily pay = monthly salary ÷ paid workdays in that month. A paid holiday leaves that count, so every day you do work is worth a little more; unpaid leave stays in it, so the month comes up short by that day.",
+          zh: "日薪 = 月薪 ÷ 该月的计薪工作日。带薪假期会从这个天数里剔除，所以你真正上班的每一天都更值钱；无薪假期仍留在里面，因此当月会少这一天的钱。",
+          ja: "日給 = 月給 ÷ その月の有給勤務日数。有給休暇はこの日数から外れるため、実際に働く一日一日の価値が上がります。無給休暇は日数に残るので、その分だけ月の合計が減ります。",
+          ko: "일급 = 월급 ÷ 해당 월의 유급 근무일. 유급 휴일은 이 일수에서 빠지므로 실제로 일하는 하루하루의 가치가 올라갑니다. 무급 휴가는 일수에 남아 그만큼 월 합계가 줄어듭니다.",
+          es: "Pago diario = sueldo mensual ÷ días laborables pagados de ese mes. Un festivo pagado sale de esa cuenta, así que cada día trabajado vale un poco más; el permiso sin sueldo permanece en ella, así que el mes queda corto por ese día.",
+          fr: "Paie journalière = salaire mensuel ÷ jours ouvrés payés de ce mois. Un jour férié payé sort de ce compte, donc chaque jour travaillé vaut un peu plus ; un congé non payé y reste, et le mois est amputé de cette journée.",
+          de: "Tageslohn = Monatsgehalt ÷ bezahlte Arbeitstage in dem Monat. Ein bezahlter Feiertag fällt aus dieser Zahl heraus, dadurch ist jeder gearbeitete Tag etwas mehr wert; unbezahlter Urlaub bleibt darin, der Monat fällt also um diesen Tag geringer aus.",
+          pt: "Pagamento diário = salário mensal ÷ dias úteis pagos desse mês. Um feriado pago sai dessa contagem, então cada dia trabalhado vale um pouco mais; a folga sem pagamento permanece nela, então o mês fica menor nesse dia.",
+          ms: "Gaji harian = gaji bulanan ÷ hari kerja bergaji bulan itu. Cuti bergaji dikeluarkan daripada kiraan itu, jadi setiap hari anda bekerja bernilai sedikit lebih tinggi; cuti tanpa gaji kekal di dalamnya, jadi bulan itu berkurang sebanyak hari tersebut.")
+    }
+
+    // MARK: Settings — schedule
+
+    public var sectionSchedule: String {
+        t(en: "Hours", zh: "作息", ja: "勤務時間", ko: "근무 시간",
+          es: "Horario", fr: "Horaires", de: "Arbeitszeit", pt: "Horário", ms: "Waktu kerja")
+    }
+
+    public var clockIn: String {
+        t(en: "Clock in", zh: "上班", ja: "出勤", ko: "출근",
+          es: "Entrada", fr: "Arrivée", de: "Arbeitsbeginn", pt: "Entrada", ms: "Masuk")
+    }
+
+    public var clockOff: String {
+        t(en: "Clock off", zh: "下班", ja: "退勤", ko: "퇴근",
+          es: "Salida", fr: "Départ", de: "Arbeitsende", pt: "Saída", ms: "Balik")
+    }
+
+    public var unpaidLunch: String {
+        t(en: "Unpaid lunch break", zh: "午休不计薪", ja: "休憩は無給", ko: "점심시간 무급",
+          es: "Almuerzo no remunerado", fr: "Pause déjeuner non payée",
+          de: "Unbezahlte Mittagspause", pt: "Almoço não remunerado",
+          ms: "Rehat makan tanpa gaji")
+    }
+
+    public var lunchStart: String {
+        t(en: "Lunch starts", zh: "午休开始", ja: "休憩開始", ko: "점심 시작",
+          es: "Inicio del almuerzo", fr: "Début de la pause", de: "Pause beginnt",
+          pt: "Início do almoço", ms: "Rehat mula")
+    }
+
+    public var lunchEnd: String {
+        t(en: "Lunch ends", zh: "午休结束", ja: "休憩終了", ko: "점심 종료",
+          es: "Fin del almuerzo", fr: "Fin de la pause", de: "Pause endet",
+          pt: "Fim do almoço", ms: "Rehat tamat")
+    }
+
+    public var paidPerDay: String {
+        t(en: "Paid hours per day", zh: "每日计薪时长", ja: "1日の有給時間", ko: "하루 유급 시간",
+          es: "Horas pagadas al día", fr: "Heures payées par jour",
+          de: "Bezahlte Stunden pro Tag", pt: "Horas pagas por dia",
+          ms: "Jam berbayar sehari")
+    }
+
+    public var overnightCaption: String {
+        t(en: "Overnight shifts are not supported: clock-off must be later than clock-in.",
+          zh: "暂不支持跨夜班次：下班时间必须晚于上班时间。",
+          ja: "夜勤（日をまたぐ勤務）は非対応です。退勤時刻は出勤時刻より後にしてください。",
+          ko: "야간 교대(자정을 넘는 근무)는 지원하지 않습니다. 퇴근 시간은 출근 시간보다 늦어야 합니다.",
+          es: "Los turnos nocturnos no son compatibles: la salida debe ser posterior a la entrada.",
+          fr: "Les postes de nuit ne sont pas pris en charge : le départ doit être après l'arrivée.",
+          de: "Nachtschichten werden nicht unterstützt: Das Arbeitsende muss nach dem Arbeitsbeginn liegen.",
+          pt: "Turnos noturnos não são suportados: a saída deve ser depois da entrada.",
+          ms: "Syif merentas malam tidak disokong: waktu balik mesti lewat daripada waktu masuk.")
+    }
+
+    // MARK: Settings — workdays
+
+    public func overtimeFor(_ d: String) -> String {
+        t(en: "Overtime · \(d)", zh: "加班中 · \(d)", ja: "残業中 · \(d)", ko: "초과 근무 · \(d)",
+          es: "Horas extra · \(d)", fr: "Heures sup. · \(d)", de: "Überstunden · \(d)",
+          pt: "Hora extra · \(d)", ms: "Kerja lebih masa · \(d)")
+    }
+
+    public var sectionOvertime: String {
+        t(en: "Overtime", zh: "加班", ja: "残業", ko: "초과 근무",
+          es: "Horas extra", fr: "Heures supplémentaires", de: "Überstunden",
+          pt: "Hora extra", ms: "Kerja lebih masa")
+    }
+
+    public var overtimeEnabled: String {
+        t(en: "Keep counting after clock-off", zh: "下班后继续计薪", ja: "退勤後も計算を続ける",
+          ko: "퇴근 후에도 계속 계산", es: "Seguir contando tras la salida",
+          fr: "Continuer après la fin de journée", de: "Nach Feierabend weiterzählen",
+          pt: "Continuar contando após a saída", ms: "Terus mengira selepas balik")
+    }
+
+    public var overtimeRate: String {
+        t(en: "Rate multiplier", zh: "倍率", ja: "割増率", ko: "가산율",
+          es: "Multiplicador", fr: "Coefficient", de: "Zuschlagsfaktor",
+          pt: "Multiplicador", ms: "Pengganda kadar")
+    }
+
+    public var overtimeMax: String {
+        t(en: "Stop after", zh: "最多计", ja: "上限", ko: "최대",
+          es: "Detener tras", fr: "Arrêter après", de: "Stoppen nach",
+          pt: "Parar após", ms: "Berhenti selepas")
+    }
+
+    public func hours(_ n: Int) -> String {
+        t(en: "\(n) hours", zh: "\(n) 小时", ja: "\(n)時間", ko: "\(n)시간",
+          es: "\(n) horas", fr: "\(n) heures", de: "\(n) Stunden",
+          pt: "\(n) horas", ms: "\(n) jam")
+    }
+
+    public var overtimeCaption: String {
+        t(en: "The app cannot tell when you actually left, so overtime stops at the limit above and never carries past midnight.",
+          zh: "程序无法知道你实际几点离开，所以加班到上面的上限就停，也不会跨过午夜。",
+          ja: "実際に退勤した時刻はアプリには分からないため、残業は上の上限で停止し、日付をまたぐこともありません。",
+          ko: "앱은 실제 퇴근 시각을 알 수 없으므로 초과 근무는 위 한도에서 멈추며 자정을 넘기지 않습니다.",
+          es: "La app no sabe cuándo te fuiste de verdad, así que las horas extra se detienen en el límite y nunca pasan de medianoche.",
+          fr: "L'app ignore l'heure réelle de votre départ : les heures sup s'arrêtent à la limite ci-dessus et ne dépassent jamais minuit.",
+          de: "Die App weiß nicht, wann du tatsächlich gegangen bist — Überstunden stoppen beim Limit oben und laufen nie über Mitternacht.",
+          pt: "O app não sabe quando você realmente saiu, então a hora extra para no limite acima e nunca passa da meia-noite.",
+          ms: "Aplikasi tidak tahu bila anda sebenarnya balik, jadi kerja lebih masa berhenti pada had di atas dan tidak melepasi tengah malam.")
+    }
+
+    public var menuBarShowRing: String {
+        t(en: "Show progress ring", zh: "显示进度环", ja: "進捗リングを表示", ko: "진행 링 표시",
+          es: "Mostrar anillo de progreso", fr: "Afficher l'anneau de progression",
+          de: "Fortschrittsring anzeigen", pt: "Mostrar anel de progresso",
+          ms: "Tunjuk gelang kemajuan")
+    }
+
+    public var menuBarShowSymbol: String {
+        t(en: "Show currency symbol", zh: "显示货币符号", ja: "通貨記号を表示", ko: "통화 기호 표시",
+          es: "Mostrar símbolo de moneda", fr: "Afficher le symbole monétaire",
+          de: "Währungssymbol anzeigen", pt: "Mostrar símbolo da moeda",
+          ms: "Tunjuk simbol mata wang")
+    }
+
+    public var menuBarIconWhenIdle: String {
+        t(en: "Icon only outside working hours", zh: "非工作时段只显示图标",
+          ja: "勤務時間外はアイコンのみ", ko: "근무 시간 외에는 아이콘만",
+          es: "Solo icono fuera del horario", fr: "Icône seule hors des horaires",
+          de: "Außerhalb der Arbeitszeit nur Symbol", pt: "Apenas ícone fora do horário",
+          ms: "Ikon sahaja di luar waktu kerja")
+    }
+
+    public var today: String {
+        t(en: "today", zh: "今天", ja: "本日", ko: "오늘",
+          es: "hoy", fr: "aujourd'hui", de: "heute", pt: "hoje", ms: "hari ini")
+    }
+
+    public var searchPlaceholder: String {
+        t(en: "Search", zh: "搜索", ja: "検索", ko: "검색",
+          es: "Buscar", fr: "Rechercher", de: "Suchen", pt: "Buscar", ms: "Cari")
+    }
+
+    public var changeAction: String {
+        t(en: "Change…", zh: "更改…", ja: "変更…", ko: "변경…",
+          es: "Cambiar…", fr: "Modifier…", de: "Ändern…", pt: "Alterar…", ms: "Tukar…")
+    }
+
+    public var sectionWorkdays: String {
+        t(en: "Workdays", zh: "工作日", ja: "勤務日", ko: "근무일",
+          es: "Días laborables", fr: "Jours ouvrés", de: "Arbeitstage",
+          pt: "Dias úteis", ms: "Hari kerja")
+    }
+
+    /// Sunday-first, matching `Calendar`'s weekday numbering.
+    public var weekdayInitials: [String] {
+        switch language {
+        case .english: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+        case .chinese: ["日", "一", "二", "三", "四", "五", "六"]
+        case .japanese: ["日", "月", "火", "水", "木", "金", "土"]
+        case .korean: ["일", "월", "화", "수", "목", "금", "토"]
+        case .spanish: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"]
+        case .french: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"]
+        case .german: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]
+        case .portuguese: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+        case .malay: ["Ah", "Is", "Se", "Ra", "Kh", "Ju", "Sa"]
+        }
+    }
+
+    // MARK: Goals
+
+    public var sectionGoals: String {
+        t(en: "Goals", zh: "目标", ja: "目標", ko: "목표",
+          es: "Objetivos", fr: "Objectifs", de: "Ziele", pt: "Metas", ms: "Sasaran")
+    }
+
+    public var goalNamePlaceholder: String {
+        t(en: "What is it?", zh: "想买什么？", ja: "何が欲しい？", ko: "무엇을 사고 싶나요?",
+          es: "¿Qué es?", fr: "C'est quoi ?", de: "Was ist es?", pt: "O que é?",
+          ms: "Apa itu?")
+    }
+
+    public var goalPrice: String {
+        t(en: "Price", zh: "价格", ja: "価格", ko: "가격",
+          es: "Precio", fr: "Prix", de: "Preis", pt: "Preço", ms: "Harga")
+    }
+
+    public var addGoal: String {
+        t(en: "Add goal", zh: "添加目标", ja: "目標を追加", ko: "목표 추가",
+          es: "Añadir objetivo", fr: "Ajouter un objectif", de: "Ziel hinzufügen",
+          pt: "Adicionar meta", ms: "Tambah sasaran")
+    }
+
+    public var showInPanel: String {
+        t(en: "Show in panel", zh: "显示在小窗口", ja: "パネルに表示", ko: "패널에 표시",
+          es: "Mostrar en el panel", fr: "Afficher dans le panneau",
+          de: "Im Panel anzeigen", pt: "Mostrar no painel", ms: "Tunjuk dalam panel")
+    }
+
+    public var noGoalsYet: String {
+        t(en: "Nothing on the list yet.", zh: "还没有目标。", ja: "まだ目標がありません。",
+          ko: "아직 목표가 없습니다.", es: "Todavía no hay nada.",
+          fr: "Rien pour l'instant.", de: "Noch nichts auf der Liste.",
+          pt: "Nada na lista ainda.", ms: "Belum ada sasaran.")
+    }
+
+    public func workdaysCost(_ days: String) -> String {
+        t(en: "\(days) working days", zh: "\(days) 个工作日", ja: "\(days)営業日",
+          ko: "근무일 \(days)일", es: "\(days) días de trabajo",
+          fr: "\(days) jours de travail", de: "\(days) Arbeitstage",
+          pt: "\(days) dias de trabalho", ms: "\(days) hari kerja")
+    }
+
+    public func readyBy(_ when: String) -> String {
+        t(en: "Ready \(when)", zh: "\(when) 到手", ja: "\(when)に達成", ko: "\(when) 달성",
+          es: "Listo \(when)", fr: "Prêt \(when)", de: "Fertig \(when)",
+          pt: "Pronto \(when)", ms: "Siap \(when)")
+    }
+
+    public var goalReached: String {
+        t(en: "Paid for", zh: "已攒够", ja: "達成済み", ko: "다 모았어요",
+          es: "Ya lo tienes", fr: "C'est payé", de: "Bezahlt", pt: "Já dá",
+          ms: "Sudah cukup")
+    }
+
+    public var goalOutOfReach: String {
+        t(en: "More than five years away", zh: "超过五年", ja: "5年以上先",
+          ko: "5년 이상", es: "A más de cinco años", fr: "À plus de cinq ans",
+          de: "Mehr als fünf Jahre entfernt", pt: "A mais de cinco anos",
+          ms: "Lebih lima tahun lagi")
+    }
+
+    public var goalsCaption: String {
+        t(en: "A price becomes a number of working days, and a date the schedule says you will have it. The date holds still while you work — only changing your schedule moves it.",
+          zh: "价格会换算成工作日数，以及按你的作息推算的到手日期。上班时这个日期不会动 —— 只有改作息或请假才会推迟它。",
+          ja: "価格を営業日数と、勤務予定から算出した達成日に換算します。働いている限り日付は動きません。動くのは勤務設定を変えたときだけです。",
+          ko: "가격을 근무일 수와, 일정에 따라 도달할 날짜로 환산합니다. 일하는 동안 날짜는 그대로이며, 일정을 바꿀 때만 움직입니다.",
+          es: "Un precio se convierte en días de trabajo y en la fecha en que el horario dice que lo tendrás. La fecha no se mueve mientras trabajas: solo cambiarla el horario la desplaza.",
+          fr: "Un prix devient un nombre de jours de travail et la date à laquelle vos horaires disent que vous l'aurez. Cette date ne bouge pas tant que vous travaillez : seul un changement d'horaires la décale.",
+          de: "Ein Preis wird zu Arbeitstagen und zu dem Datum, an dem dein Zeitplan sagt, dass du es hast. Das Datum bleibt stehen, solange du arbeitest — nur eine Änderung am Zeitplan verschiebt es.",
+          pt: "Um preço vira dias de trabalho e a data em que o seu horário diz que você o terá. A data não se move enquanto você trabalha — só mudar o horário a desloca.",
+          ms: "Harga bertukar menjadi bilangan hari kerja, dan tarikh yang jadual anda kata anda akan memilikinya. Tarikh itu tidak bergerak selagi anda bekerja — hanya perubahan jadual menggesernya.")
+    }
+
+    // MARK: Settings — display
+
+    public var legendWorked: String {
+        t(en: "Worked", zh: "已完成", ja: "完了", ko: "완료",
+          es: "Trabajado", fr: "Travaillé", de: "Gearbeitet", pt: "Trabalhado",
+          ms: "Selesai")
+    }
+
+    public var legendUpcoming: String {
+        t(en: "Upcoming", zh: "待完成", ja: "予定", ko: "예정",
+          es: "Pendiente", fr: "À venir", de: "Ausstehend", pt: "Pendente",
+          ms: "Akan datang")
+    }
+
+    public var previousMonth: String {
+        t(en: "Previous month", zh: "上个月", ja: "前の月", ko: "이전 달",
+          es: "Mes anterior", fr: "Mois précédent", de: "Vorheriger Monat",
+          pt: "Mês anterior", ms: "Bulan sebelumnya")
+    }
+
+    public var nextMonth: String {
+        t(en: "Next month", zh: "下个月", ja: "次の月", ko: "다음 달",
+          es: "Mes siguiente", fr: "Mois suivant", de: "Nächster Monat",
+          pt: "Próximo mês", ms: "Bulan seterusnya")
+    }
+
+    public var backToThisMonth: String {
+        t(en: "Back to this month", zh: "回到本月", ja: "今月に戻る", ko: "이번 달로",
+          es: "Volver a este mes", fr: "Revenir à ce mois", de: "Zurück zu diesem Monat",
+          pt: "Voltar a este mês", ms: "Kembali ke bulan ini")
+    }
+
+    public var halfDay: String {
+        t(en: "Half day", zh: "半天", ja: "半日", ko: "반일",
+          es: "Medio día", fr: "Demi-journée", de: "Halber Tag", pt: "Meio dia",
+          ms: "Setengah hari")
+    }
+
+    public var weekdayHint: String {
+        t(en: "Click a weekday: off → full day → half day.",
+          zh: "点星期：休息 → 整天 → 半天。",
+          ja: "曜日をクリック：休み → 全日 → 半日。",
+          ko: "요일 클릭: 휴무 → 종일 → 반일.",
+          es: "Clic en un día: libre → completo → medio.",
+          fr: "Clic sur un jour : repos → complet → demi.",
+          de: "Wochentag klicken: frei → ganz → halb.",
+          pt: "Clique num dia: folga → inteiro → meio.",
+          ms: "Klik hari: cuti → penuh → separuh.")
+    }
+
+    public var legendPaidLeave: String {
+        t(en: "Paid off", zh: "带薪休", ja: "有給休", ko: "유급 휴무",
+          es: "Libre pagado", fr: "Congé payé", de: "Bezahlt frei",
+          pt: "Folga paga", ms: "Cuti bergaji")
+    }
+
+    public var legendUnpaidLeave: String {
+        t(en: "Unpaid", zh: "无薪休", ja: "無給休", ko: "무급 휴무",
+          es: "Sin sueldo", fr: "Non payé", de: "Unbezahlt",
+          pt: "Sem pagamento", ms: "Tanpa gaji")
+    }
+
+    public func daysOff(_ n: Int) -> String {
+        t(en: "\(n) off", zh: "\(n) 天休假", ja: "休み\(n)日", ko: "휴무 \(n)일",
+          es: "\(n) libres", fr: "\(n) en congé", de: "\(n) frei",
+          pt: "\(n) de folga", ms: "\(n) cuti")
+    }
+
+    public var calendarHint: String {
+        t(en: "Click a date: workday → paid holiday → unpaid leave.",
+          zh: "点日期：工作日 → 带薪休 → 无薪休。",
+          ja: "日付をクリック：勤務日 → 有給休 → 無給休。",
+          ko: "날짜 클릭: 근무일 → 유급 휴무 → 무급 휴무.",
+          es: "Clic en una fecha: laborable → festivo pagado → sin sueldo.",
+          fr: "Clic sur une date : travaillé → congé payé → non payé.",
+          de: "Datum klicken: Arbeitstag → bezahlt frei → unbezahlt.",
+          pt: "Clique numa data: útil → feriado pago → sem pagamento.",
+          ms: "Klik tarikh: hari kerja → cuti bergaji → tanpa gaji.")
+    }
+
+    public var sectionDisplay: String {
+        t(en: "Display", zh: "显示", ja: "表示", ko: "표시",
+          es: "Pantalla", fr: "Affichage", de: "Anzeige", pt: "Exibição", ms: "Paparan")
+    }
+
+    /// Title of the settings tab holding display and system preferences.
+    public var sectionGeneral: String {
+        t(en: "General", zh: "通用", ja: "一般", ko: "일반",
+          es: "General", fr: "Général", de: "Allgemein", pt: "Geral", ms: "Umum")
+    }
+
+    public var languageLabel: String {
+        t(en: "Language", zh: "语言", ja: "言語", ko: "언어",
+          es: "Idioma", fr: "Langue", de: "Sprache", pt: "Idioma", ms: "Bahasa")
+    }
+
+    public var timeZoneLabel: String {
+        t(en: "Time zone", zh: "时区", ja: "タイムゾーン", ko: "시간대",
+          es: "Zona horaria", fr: "Fuseau horaire", de: "Zeitzone",
+          pt: "Fuso horário", ms: "Zon waktu")
+    }
+
+    public var systemTimeZone: String {
+        t(en: "System", zh: "跟随系统", ja: "システムに従う", ko: "시스템 설정",
+          es: "Del sistema", fr: "Système", de: "System", pt: "Do sistema",
+          ms: "Ikut sistem")
+    }
+
+    public var timeZoneCaption: String {
+        t(en: "Pick a zone if your working hours belong somewhere other than this Mac's clock — the whole schedule is then read in that zone.",
+          zh: "如果你的上下班时间属于另一个地区，而不是这台 Mac 的时钟，就选一个时区 —— 整个作息都会按那个时区解读。",
+          ja: "勤務時間がこの Mac の時計とは別の地域のものである場合はタイムゾーンを選んでください。勤務設定全体がそのタイムゾーンで解釈されます。",
+          ko: "근무 시간이 이 Mac의 시계가 아닌 다른 지역 기준이라면 시간대를 선택하세요. 전체 일정이 해당 시간대로 해석됩니다.",
+          es: "Elige una zona si tu horario pertenece a un lugar distinto del reloj de este Mac — todo el horario se leerá en esa zona.",
+          fr: "Choisissez un fuseau si vos horaires relèvent d'un autre lieu que l'horloge de ce Mac — tout l'horaire sera alors lu dans ce fuseau.",
+          de: "Wähle eine Zeitzone, wenn deine Arbeitszeiten zu einem anderen Ort als der Uhr dieses Macs gehören — der gesamte Zeitplan wird dann in dieser Zone gelesen.",
+          pt: "Escolha um fuso se o seu horário pertence a outro lugar que não o relógio deste Mac — todo o horário será lido nesse fuso.",
+          ms: "Pilih zon waktu jika waktu kerja anda mengikut tempat lain, bukan jam Mac ini — keseluruhan jadual akan dibaca dalam zon itu.")
+    }
+
+    public var currencySymbol: String {
+        t(en: "Currency symbol", zh: "货币符号", ja: "通貨記号", ko: "통화 기호",
+          es: "Símbolo de moneda", fr: "Symbole monétaire", de: "Währungssymbol",
+          pt: "Símbolo da moeda", ms: "Simbol mata wang")
+    }
+
+    public var decimals: String {
+        t(en: "Decimals", zh: "小数位", ja: "小数点以下の桁数", ko: "소수점 자리",
+          es: "Decimales", fr: "Décimales", de: "Nachkommastellen",
+          pt: "Casas decimais", ms: "Titik perpuluhan")
+    }
+
+    public var menuBarPreview: String {
+        t(en: "Menu bar preview", zh: "菜单栏预览", ja: "メニューバーのプレビュー",
+          ko: "메뉴 막대 미리보기", es: "Vista previa", fr: "Aperçu", de: "Vorschau",
+          pt: "Pré-visualização", ms: "Pratonton bar menu")
+    }
+
+    // MARK: Settings — system
+
+    public var sectionSystem: String {
+        t(en: "System", zh: "系统", ja: "システム", ko: "시스템",
+          es: "Sistema", fr: "Système", de: "System", pt: "Sistema", ms: "Sistem")
+    }
+
+    public var launchAtLogin: String {
+        t(en: "Launch at login", zh: "开机自动启动", ja: "ログイン時に起動", ko: "로그인 시 실행",
+          es: "Abrir al iniciar sesión", fr: "Lancer à l'ouverture de session",
+          de: "Beim Anmelden starten", pt: "Abrir ao iniciar sessão",
+          ms: "Lancar semasa log masuk")
+    }
+
+    public var launchNeedsApproval: String {
+        t(en: "Approve SalaryTicker in System Settings › General › Login Items to finish enabling this.",
+          zh: "还需在「系统设置 › 通用 › 登录项」中批准 SalaryTicker，开机自启才会生效。",
+          ja: "「システム設定 › 一般 › ログイン項目」で SalaryTicker を許可すると有効になります。",
+          ko: "「시스템 설정 › 일반 › 로그인 항목」에서 SalaryTicker를 승인해야 적용됩니다.",
+          es: "Aprueba SalaryTicker en Ajustes del Sistema › General › Ítems de inicio para activarlo.",
+          fr: "Autorisez SalaryTicker dans Réglages Système › Général › Ouverture pour terminer l'activation.",
+          de: "Bestätige SalaryTicker in Systemeinstellungen › Allgemein › Anmeldeobjekte, um dies zu aktivieren.",
+          pt: "Aprove o SalaryTicker em Ajustes do Sistema › Geral › Itens de Início para concluir.",
+          ms: "Benarkan SalaryTicker dalam Tetapan Sistem › Umum › Item Log Masuk untuk mengaktifkannya.")
+    }
+
+    public var notBundledCaption: String {
+        t(en: "Launch SalaryTicker.app from /Applications to enable this.",
+          zh: "从「应用程序」里启动 SalaryTicker.app 才能设置开机自启。",
+          ja: "この設定を使うには /Applications から SalaryTicker.app を起動してください。",
+          ko: "이 기능을 사용하려면 /Applications에서 SalaryTicker.app을 실행하세요.",
+          es: "Abre SalaryTicker.app desde /Applications para activarlo.",
+          fr: "Lancez SalaryTicker.app depuis /Applications pour l'activer.",
+          de: "Starte SalaryTicker.app aus /Applications, um dies zu aktivieren.",
+          pt: "Abra o SalaryTicker.app a partir de /Applications para ativar.",
+          ms: "Lancarkan SalaryTicker.app dari /Applications untuk mengaktifkannya.")
+    }
+
+    public var notBundledError: String {
+        t(en: "Move SalaryTicker.app into /Applications before enabling launch at login.",
+          zh: "需要先把 SalaryTicker.app 拖进「应用程序」再开启开机自启。",
+          ja: "ログイン時起動を有効にする前に SalaryTicker.app を /Applications に移動してください。",
+          ko: "로그인 시 실행을 켜기 전에 SalaryTicker.app을 /Applications로 옮기세요.",
+          es: "Mueve SalaryTicker.app a /Applications antes de activar el inicio automático.",
+          fr: "Déplacez SalaryTicker.app dans /Applications avant d'activer le lancement à l'ouverture de session.",
+          de: "Verschiebe SalaryTicker.app nach /Applications, bevor du den Start beim Anmelden aktivierst.",
+          pt: "Mova o SalaryTicker.app para /Applications antes de ativar a abertura ao iniciar sessão.",
+          ms: "Pindahkan SalaryTicker.app ke /Applications sebelum mengaktifkan lancar semasa log masuk.")
+    }
+}

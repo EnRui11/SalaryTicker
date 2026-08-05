@@ -1,0 +1,9 @@
+.build/
+.swiftpm/
+.vscode/
+SalaryTicker.app/
+*.xcodeproj
+
+# Generated from Sources/Presentation/Debug/IconCandidates.swift by build_app.sh.
+# Kept out of the repository so the drawing code stays the only source of truth for it.
+Packaging/AppIcon.icns
