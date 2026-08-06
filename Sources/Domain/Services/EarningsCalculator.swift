@@ -29,7 +29,10 @@ public enum EarningsCalculator {
         let elapsed = isWorkday
             ? paidSecondsAccrued(config: config, on: now, upTo: now, calendar: calendar)
             : 0
-        let overtime = isWorkday
+        // A multiplier that cannot pay — zero, negative, not a number — means there is no
+        // overtime, not unpaid overtime. Counting the seconds anyway put "Overtime for
+        // 1h 20m" in the status line beside a figure that had not moved since clock-off.
+        let overtime = isWorkday && config.effectiveOvertimeMultiplier > 0
             ? overtimeSecondsAccrued(config: config, on: now, upTo: now, calendar: calendar)
             : 0
         let overtimeEarned = overtime * rate * config.effectiveOvertimeMultiplier

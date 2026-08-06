@@ -293,3 +293,37 @@ private func rig(config: SalaryConfig = liveConfig(), start: Date) -> Rig {
     #expect(loginItem.registerCount == 0)
     #expect(loginItem.state == .enabled)
 }
+
+// MARK: - The cheap path Settings uses must give the same answer as the expensive one
+
+@Test @MainActor func theSettingsProjectionMatchesAFullComputation() {
+    // Settings redraws once a second while it is open, and an uncached projection for an
+    // old goal costs tens of milliseconds per goal. Serving it from the day-keyed cache is
+    // only safe if the two paths cannot disagree.
+    let goals = [
+        SavingsGoal(name: "Pinned", amount: 3_000, isPinned: true, startedAt: at(9, 0, day: 3)),
+        SavingsGoal(name: "Unpinned", amount: 800, isPinned: false, startedAt: at(15, 0, day: 4)),
+        SavingsGoal(name: "New today", amount: 400, isPinned: true, startedAt: at(9, 30, day: 5)),
+    ]
+    let rig = rig(config: liveConfig(goals: goals), start: at(16, 0, day: 5))
+    rig.viewModel.refresh()
+
+    for goal in goals {
+        let shown = rig.viewModel.projection(for: goal)
+        let truth = GoalCalculator.projection(
+            for: goal, config: liveConfig(goals: goals), now: at(16, 0, day: 5), calendar: testCalendar()
+        )
+        #expect(abs(shown.earned - truth.earned) < 1e-9, "\(goal.name)")
+        #expect(abs(shown.workdays - truth.workdays) < 1e-9, "\(goal.name)")
+        #expect(shown.readyAt == truth.readyAt, "\(goal.name)")
+    }
+}
+
+@Test @MainActor func anUnpinnedGoalIsProjectedButNotShownInThePanel() {
+    let goals = [SavingsGoal(name: "Someday", amount: 900, isPinned: false, startedAt: at(9, 0, day: 3))]
+    let rig = rig(config: liveConfig(goals: goals), start: at(16, 0, day: 5))
+    rig.viewModel.refresh()
+
+    #expect(rig.viewModel.pinnedGoals.isEmpty)
+    #expect(rig.viewModel.projection(for: goals[0]).readyAt != nil)
+}

@@ -49,7 +49,7 @@ public enum GoalCalculator {
             earned: earned,
             progress: goal.amount > 0 ? min(max(earned / goal.amount, 0), 1) : 0,
             readyAt: readyDate(
-                needing: remaining / rate, config: config, now: now, calendar: calendar
+                needing: remaining, config: config, now: now, calendar: calendar
             )
         )
     }
@@ -95,12 +95,17 @@ public enum GoalCalculator {
         )
 
         var cursor = calendar.date(byAdding: .day, value: 1, to: firstDay) ?? today
-        var guardRail = 0
-        while cursor < today, guardRail < horizonDays {
+        while cursor < today {
             total += config.payWeight(for: cursor, calendar: calendar)
                 * config.dailyPay(at: cursor, calendar: calendar)
-            cursor = calendar.date(byAdding: .day, value: 1, to: cursor) ?? today
-            guardRail += 1
+            // Bounded by the calendar rather than by a horizon. The forward walk needs a
+            // cap because an unaffordable goal never arrives; the past has a definite
+            // length and every day of it was really paid, so capping it here only made an
+            // old goal stop counting. What can actually go wrong is arithmetic that fails
+            // to advance, so that is what this guards.
+            guard let next = calendar.date(byAdding: .day, value: 1, to: cursor), next > cursor
+            else { break }
+            cursor = next
         }
         return total
     }
@@ -127,8 +132,28 @@ public enum GoalCalculator {
             total -= paid(
                 on: now, between: today, and: goal.startedAt, config: config, calendar: calendar
             )
+            // Overtime needs its own term. `paid` is built on `paidSecondsAccrued`, which
+            // saturates at the end of the working window and so cannot see a single second
+            // past clock-off — while `total` above already contains all of them. Without
+            // this, a goal created in the evening is born funded by the overtime that was
+            // already on the clock, which is precisely what `startedAt` exists to prevent.
+            total -= overtimePay(
+                on: now, upTo: goal.startedAt, config: config, calendar: calendar
+            )
         }
         return max(0, total)
+    }
+
+    /// Overtime money earned on `day` up to `instant`, priced at the multiplier.
+    private static func overtimePay(
+        on day: Date,
+        upTo instant: Date,
+        config: SalaryConfig,
+        calendar: Calendar
+    ) -> Double {
+        EarningsCalculator.overtimeSecondsAccrued(
+            config: config, on: day, upTo: instant, calendar: calendar
+        ) * config.ratePerSecond(at: day, calendar: calendar) * config.effectiveOvertimeMultiplier
     }
 
     /// Money earned on one day between two instants of it.
@@ -149,23 +174,31 @@ public enum GoalCalculator {
         return (calendar.date(byAdding: .day, value: 1, to: start) ?? date).addingTimeInterval(-1)
     }
 
-    /// Walks the schedule forward until enough paid time has accumulated.
+    /// Walks the schedule forward until enough has been earned.
     ///
-    /// Counts *future* paid time only, which is what gives the answer its useful property:
-    /// while you are working, the money and the clock advance together and the date barely
-    /// moves; while you are not, it slips away from you.
+    /// Counts *future* pay only, which is what gives the answer its useful property: while
+    /// you are working, the money and the clock advance together and the date barely moves;
+    /// while you are not, it slips away from you.
+    ///
+    /// The walk carries money rather than paid seconds, and that is not a detail. A paid
+    /// second is worth a different amount in every month, because the daily rate is the
+    /// salary divided by *that* month's working days — 21 in August 2026, 22 in September,
+    /// 20 in February 2027. Converting the shortfall to seconds once, at today's rate, and
+    /// then spending those seconds in a month where they buy something else lands the goal
+    /// on the wrong day. `earnedBeforeToday` has always priced each past day in its own
+    /// month; this is the same arithmetic pointed forwards.
     ///
     /// The walk is day by day rather than closed-form because days are not interchangeable —
-    /// weekends, half days and leave all make a different amount of money.
+    /// weekends, half days, leave and the month they fall in all make a different amount.
     static func readyDate(
-        needing paidSeconds: TimeInterval,
+        needing amount: Double,
         config: SalaryConfig,
         now: Date,
         calendar: Calendar
     ) -> Date? {
-        guard paidSeconds > 0 else { return now }
+        guard amount > 0 else { return now }
 
-        var remaining = paidSeconds
+        var remaining = amount
         var cursor = now
 
         for dayIndex in 0..<horizonDays {
@@ -185,15 +218,22 @@ public enum GoalCalculator {
             )
             let wholeDay = config.paidSeconds(on: cursor, calendar: calendar)
             let availableToday = max(0, wholeDay - alreadyDone)
+            // What this particular day is worth, which is the whole point of the walk.
+            let rate = config.ratePerSecond(at: cursor, calendar: calendar)
+            guard rate > 0, rate.isFinite else {
+                cursor = nextDay(after: cursor, calendar: calendar) ?? cursor
+                continue
+            }
+            let earnableToday = availableToday * rate
 
-            if remaining <= availableToday + secondsTolerance {
+            if remaining <= earnableToday + secondsTolerance * rate {
                 return instant(
-                    afterAccruing: alreadyDone + remaining,
+                    afterAccruing: alreadyDone + remaining / rate,
                     on: cursor, config: config, calendar: calendar
                 )
             }
 
-            remaining -= availableToday
+            remaining -= earnableToday
             cursor = nextDay(after: cursor, calendar: calendar) ?? cursor
         }
         return nil

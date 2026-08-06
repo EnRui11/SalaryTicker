@@ -72,22 +72,36 @@ public enum Formatting {
     }
 
     /// `August 2026`, or its equivalent in whichever language is configured.
-    public static func monthTitle(_ date: Date, language: AppLanguage) -> String {
+    ///
+    /// - Parameter timeZone: the zone the schedule is read in, which is not always this
+    ///   Mac's. Half past midnight on 1 September in Kuala Lumpur is still August in New
+    ///   York, and the grid must agree with the calculator about which month it is showing.
+    public static func monthTitle(
+        _ date: Date, language: AppLanguage, timeZone: TimeZone = .current
+    ) -> String {
         // Starting from a preset would drag the day number in with it.
-        let style = Date.FormatStyle(date: .omitted, time: .omitted, locale: locale(for: language))
+        var style = Date.FormatStyle(date: .omitted, time: .omitted, locale: locale(for: language))
             .year()
             .month(.wide)
+        style.timeZone = timeZone
         return style.format(date)
     }
 
     /// `Thu 6 Aug, 18:00` — enough to act on, short enough for a panel row.
-    public static func readyTimestamp(_ date: Date, language: AppLanguage) -> String {
-        let style = Date.FormatStyle(date: .omitted, time: .omitted, locale: locale(for: language))
+    ///
+    /// - Parameter timeZone: as above. A projection computed for six in the evening in the
+    ///   configured zone has to be shown as six in the evening, not translated back into
+    ///   whatever zone the Mac happens to be sitting in.
+    public static func readyTimestamp(
+        _ date: Date, language: AppLanguage, timeZone: TimeZone = .current
+    ) -> String {
+        var style = Date.FormatStyle(date: .omitted, time: .omitted, locale: locale(for: language))
             .weekday(.abbreviated)
             .day()
             .month(.abbreviated)
             .hour()
             .minute()
+        style.timeZone = timeZone
         return style.format(date)
     }
 

@@ -162,7 +162,10 @@ private func repository(seededWith json: String? = nil, suite: String) -> UserDe
     #expect(store.load() == original)
 }
 
-@Test func aGoalWithAnUnreadableIdIsDroppedRatherThanFailingTheLoad() {
+@Test func aGoalWithAnUnreadableIdKeepsWhatTheUserTypedAndGetsANewIdentity() {
+    // This used to drop the goal, on the grounds that losing one goal beat failing the
+    // whole load. The decoder no longer fails that way, so the trade is gone: an id is
+    // internal bookkeeping, while the name and the amount are the things the user chose.
     let saved = """
     {"monthlySalary":6000,"goals":[
       {"id":"not-a-uuid","name":"Bad","amount":10,"isPinned":true,"startedAt":0},
@@ -172,11 +175,79 @@ private func repository(seededWith json: String? = nil, suite: String) -> UserDe
     let config = repository(seededWith: saved, suite: "test.badgoal").load()
 
     #expect(config.monthlySalary == 6000)
-    #expect(config.goals.count == 1)
-    #expect(config.goals.first?.name == "Good")
+    #expect(config.goals.count == 2)
+    #expect(config.goals.map(\.name) == ["Bad", "Good"])
+    #expect(config.goals[0].amount == 10)
+    // The readable one keeps the identity it was saved with; only the broken one is new.
+    #expect(config.goals[1].id == UUID(uuidString: "7B7D3E2A-1111-4222-8333-444455556666"))
+    #expect(config.goals[0].id != config.goals[1].id)
 }
 
 @Test func aConfigFromBeforeGoalsExistedLoadsWithNone() {
     let config = repository(seededWith: #"{"monthlySalary":5000}"#, suite: "test.pregoals").load()
     #expect(config.goals.isEmpty)
+}
+
+// MARK: - A bad field must not take the whole configuration down with it
+//
+// The tolerant decoding above only forgives keys that are *absent*. Every one of these
+// covers a key that is present with the wrong shape, which is what actually happens when a
+// field changes between builds — and which used to throw, be swallowed by `load()`, and
+// hand the user factory settings. The next save then wrote those defaults over the real
+// config, so the loss was permanent.
+
+@Test func oneUnreadableGoalCannotWipeTheWholeConfiguration() {
+    // A goal written before `isPinned` existed. Everything else in the file is fine.
+    let saved = """
+    {"monthlySalary":5000,"currencySymbol":"RM","workdays":[2,3,4,5,6],
+     "goals":[{"id":"A","name":"Bike","amount":2000,"startedAt":1785916285.0}]}
+    """
+    let config = repository(seededWith: saved, suite: "test.goalfield").load()
+
+    #expect(config.monthlySalary == 5000)
+    #expect(config.currencySymbol == "RM")
+    #expect(config.goals.count == 1)
+    #expect(config.goals.first?.name == "Bike")
+    #expect(config.goals.first?.isPinned == true)   // the missing field takes the default
+}
+
+@Test func aFieldOfTheWrongTypeIsTreatedAsAbsentRatherThanFatal() {
+    // fractionDigits is an Int; a Double there is exactly the kind of drift a hand-edit or
+    // a changed field type produces.
+    let saved = #"{"monthlySalary":7777,"currencySymbol":"RM","fractionDigits":2.5}"#
+    let config = repository(seededWith: saved, suite: "test.wrongtype").load()
+
+    #expect(config.monthlySalary == 7777)
+    #expect(config.currencySymbol == "RM")
+    #expect(config.fractionDigits == SalaryConfig.default.fractionDigits)
+}
+
+@Test func aGoalWrittenBeforeStartedAtExistedDoesNotClaimEveryYearSince1970() {
+    // Defaulting the missing instant to the epoch would credit the goal with decades of
+    // work. Starting the clock now under-claims instead, which is the safe direction.
+    let saved = #"{"goals":[{"id":"A","name":"Bike","amount":2000,"isPinned":true}]}"#
+    let config = repository(seededWith: saved, suite: "test.nostart").load()
+
+    #expect(config.goals.count == 1)
+    #expect(abs(config.goals.first?.startedAt.timeIntervalSinceNow ?? .infinity) < 5)
+}
+
+@Test func aGoalThatIsNotEvenAnObjectIsDroppedAndTheRestSurvive() {
+    let saved = """
+    {"monthlySalary":6000,
+     "goals":[42,{"id":"B","name":"Kyoto","amount":9000,"isPinned":true,"startedAt":1785916285.0}]}
+    """
+    let config = repository(seededWith: saved, suite: "test.badelement").load()
+
+    #expect(config.monthlySalary == 6000)
+    #expect(config.goals.count == 1)
+    #expect(config.goals.first?.name == "Kyoto")
+}
+
+@Test func aDayOverrideMapOfTheWrongShapeLosesOnlyTheOverrides() {
+    let saved = #"{"monthlySalary":4321,"dayOverrides":{"2026-08-07":7}}"#
+    let config = repository(seededWith: saved, suite: "test.badoverrides").load()
+
+    #expect(config.monthlySalary == 4321)
+    #expect(config.dayOverrides.isEmpty)
 }

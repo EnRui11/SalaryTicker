@@ -94,10 +94,14 @@ public final class TickerViewModel {
     private func refreshGoals(at now: Date) {
         let calendar = config.calendar()
         let today = calendar.startOfDay(for: now)
-        let pinned = config.goals.filter { $0.isPinned && $0.isValid }
+        // Every valid goal, not only the pinned ones. Settings lists them all and asks each
+        // for a projection on every redraw — which is once a second, since `earnings`
+        // changes every tick and rebuilds the form — and an uncached projection for an old
+        // goal costs tens of milliseconds.
+        let valid = config.goals.filter(\.isValid)
 
         if goalCacheDay != today || goalCacheConfig != config {
-            goalCache = Dictionary(uniqueKeysWithValues: pinned.map { goal in
+            goalCache = Dictionary(uniqueKeysWithValues: valid.map { goal in
                 let banked = GoalCalculator.earnedBeforeToday(
                     for: goal, config: config, now: now, calendar: calendar
                 )
@@ -111,24 +115,35 @@ public final class TickerViewModel {
             goalCacheConfig = config
         }
 
-        pinnedGoals = pinned.compactMap { goal in
-            guard let cached = goalCache[goal.id] else { return nil }
-            // Everything but the running total is fixed for the day; patch that in rather
-            // than walking the calendar again.
-            let earned = min(
-                cached.banked + GoalCalculator.earnedToday(
-                    for: goal, config: config, now: now, calendar: calendar
-                ),
-                goal.amount
-            )
-            return (goal, GoalProjection(
-                workSeconds: cached.projection.workSeconds,
-                workdays: cached.projection.workdays,
-                earned: earned,
-                progress: goal.amount > 0 ? min(max(earned / goal.amount, 0), 1) : 0,
-                readyAt: cached.projection.readyAt
-            ))
-        }
+        pinnedGoals = valid
+            .filter(\.isPinned)
+            .compactMap { goal in
+                liveProjection(for: goal, at: now, calendar: calendar).map { (goal, $0) }
+            }
+    }
+
+    /// A cached projection with today's running total patched in.
+    ///
+    /// Everything expensive in a projection — the walk back over every day since saving
+    /// started, and the walk forward to the day it lands on — is fixed for the whole day.
+    /// Only the running total moves, and that is cheap.
+    private func liveProjection(
+        for goal: SavingsGoal, at now: Date, calendar: Calendar
+    ) -> GoalProjection? {
+        guard let cached = goalCache[goal.id] else { return nil }
+        let earned = min(
+            cached.banked + GoalCalculator.earnedToday(
+                for: goal, config: config, now: now, calendar: calendar
+            ),
+            goal.amount
+        )
+        return GoalProjection(
+            workSeconds: cached.projection.workSeconds,
+            workdays: cached.projection.workdays,
+            earned: earned,
+            progress: goal.amount > 0 ? min(max(earned / goal.amount, 0), 1) : 0,
+            readyAt: cached.projection.readyAt
+        )
     }
 
     /// Rebuilds the grid only when the month it draws could actually have changed.
@@ -188,10 +203,20 @@ public final class TickerViewModel {
     private var goalCacheConfig: SalaryConfig?
     private var goalCacheDay: Date?
 
+    /// The projection Settings shows beside each goal.
+    ///
+    /// Served from the same day-keyed cache the panel uses, and computed from scratch only
+    /// when the cache cannot answer — an edit the tick has not caught up with, or a goal
+    /// that has only just become valid. The cached answer is used only when it was built
+    /// for the configuration currently on screen, so an edit never sees a stale figure.
     public func projection(for goal: SavingsGoal) -> GoalProjection {
-        GoalCalculator.projection(
-            for: goal, config: config, now: clock.now, calendar: config.calendar()
-        )
+        let now = clock.now
+        let calendar = config.calendar()
+        if goalCacheConfig == config,
+           let cached = liveProjection(for: goal, at: now, calendar: calendar) {
+            return cached
+        }
+        return GoalCalculator.projection(for: goal, config: config, now: now, calendar: calendar)
     }
 
     public func addGoal() {

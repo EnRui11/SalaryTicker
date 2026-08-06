@@ -247,3 +247,163 @@ func anImpossibleAmountIsReportedRatherThanGuessed(amount: Double) {
         #expect(abs(whole - halves) < 1e-9)
     }
 }
+
+// MARK: - Overtime must not fund a goal that did not exist yet
+//
+// `earnedToday` starts from the day's whole earnings, which include overtime, and then
+// subtracts what was earned before the goal began. That subtraction priced regular hours
+// only, so an evening goal was born already part paid for out of the overtime on the clock.
+
+private func overtimeConfig(_ multiplier: Double = 1.5) -> SalaryConfig {
+    var config = standard
+    config.overtimeEnabled = true
+    config.overtimeMultiplier = multiplier
+    return config
+}
+
+@Test func aGoalCreatedAfterClockOffDoesNotInheritTheEveningsOvertime() {
+    // 20:00 on Wednesday: two hours past an 18:00 clock-off, both already worked. Read one
+    // second later, the goal is owed exactly that one second of overtime and nothing else.
+    let evening = at(20, 0)
+    let config = overtimeConfig()
+    let goal = SavingsGoal(name: "Thing", amount: 5_000, startedAt: evening)
+    let earned = GoalCalculator.earned(
+        for: goal, config: config, now: evening.addingTimeInterval(1), calendar: cal()
+    )
+
+    let oneSecondOfOvertime = config.ratePerSecond(at: evening, calendar: cal()) * 1.5
+    #expect(abs(earned - oneSecondOfOvertime) < 1e-9)
+    // The two hours already on the clock were worth this much, and none of it is the
+    // goal's — the bug this pins credited every cent of it.
+    #expect(earned < 2 * 3_600 * oneSecondOfOvertime * 0.001)
+}
+
+@Test func overtimeWorkedAfterAGoalStartsStillCountsTowardsIt() {
+    // The other half, and the one that stops "subtract all overtime" from passing for a
+    // fix: overtime earned after the goal exists is exactly as real as regular pay.
+    let goal = SavingsGoal(name: "Thing", amount: 5_000, startedAt: at(18, 0))
+    let config = overtimeConfig()
+    let earned = GoalCalculator.earned(
+        for: goal, config: config, now: at(20, 0), calendar: cal()
+    )
+    // Two hours past clock-off at one and a half times the normal second.
+    let expected = 2 * 3_600 * config.ratePerSecond(at: at(20, 0), calendar: cal()) * 1.5
+    #expect(abs(earned - expected) < 1e-6)
+}
+
+@Test func aGoalStartedMidOvertimeCountsOnlyTheOvertimeAfterIt() {
+    // Started at 19:00, an hour into overtime, read at 20:00: one hour, not two.
+    let goal = SavingsGoal(name: "Thing", amount: 5_000, startedAt: at(19, 0))
+    let config = overtimeConfig()
+    let earned = GoalCalculator.earned(
+        for: goal, config: config, now: at(20, 0), calendar: cal()
+    )
+    let expected = 3_600 * config.ratePerSecond(at: at(20, 0), calendar: cal()) * 1.5
+    #expect(abs(earned - expected) < 1e-6)
+}
+
+@Test func theTwoHalvesStillAddUpWhenOvertimeIsInPlay() {
+    // The cached path the panel uses must not drift from the whole computation, overtime
+    // included — this is what the ticker actually renders every second.
+    let goal = SavingsGoal(name: "Split", amount: 5_000, startedAt: at(19, 0, day: 3))
+    let config = overtimeConfig()
+    for now in [at(9, 0), at(14, 0), at(19, 0), at(21, 30)] {
+        let whole = GoalCalculator.earned(for: goal, config: config, now: now, calendar: cal())
+        let halves = GoalCalculator.earnedBeforeToday(for: goal, config: config, now: now, calendar: cal())
+            + GoalCalculator.earnedToday(for: goal, config: config, now: now, calendar: cal())
+        #expect(abs(whole - halves) < 1e-9, "at \(describe(now))")
+    }
+}
+
+// MARK: - The forward walk must price days the way the backward walk does
+//
+// A paid second is worth a different amount in every month, because the daily rate is the
+// salary divided by *that* month's working days: August 2026 has 21, September 22, February
+// 2027 has 20 — a 10% swing. `earnedBeforeToday` already asks each past day for its own
+// rate. The forward walk used to convert the whole shortfall into seconds once, at today's
+// rate, and then spend those seconds in months where they were worth something else.
+
+@Test func theProjectedInstantIsWhenTheScheduleHasActuallyPaidForIt() throws {
+    // Fifteen August days' worth, started late in August: it cannot finish before
+    // September, where every day pays less.
+    let start = at(9, 0, day: 24)
+    let goal = SavingsGoal(
+        name: "Big", amount: standard.dailyPay(at: start, calendar: cal()) * 15, startedAt: start
+    )
+    let projection = GoalCalculator.projection(
+        for: goal, config: standard, now: start, calendar: cal()
+    )
+
+    let readyAt = try #require(projection.readyAt)
+    // Cross-check against the half of the calculator that was always right.
+    let banked = GoalCalculator.earned(for: goal, config: standard, now: readyAt, calendar: cal())
+    #expect(abs(banked - goal.amount) < 1.0, "landed at \(describe(readyAt)) with \(banked) of \(goal.amount)")
+}
+
+@Test func aGoalThatFinishesInsideThisMonthIsUnaffected() throws {
+    // The regression guard for the fix: within one month every day is worth the same, so
+    // nothing about these answers may move.
+    let start = at(9, 0)
+    for days in [0.5, 1.0, 2.0, 3.0] {
+        let goal = SavingsGoal(
+            name: "Small", amount: standard.dailyPay(at: start, calendar: cal()) * days, startedAt: start
+        )
+        let projection = GoalCalculator.projection(
+            for: goal, config: standard, now: start, calendar: cal()
+        )
+        let readyAt = try #require(projection.readyAt)
+        let banked = GoalCalculator.earned(for: goal, config: standard, now: readyAt, calendar: cal())
+        #expect(abs(banked - goal.amount) < 0.01, "\(days) days landed at \(describe(readyAt))")
+    }
+}
+
+@Test func aGoalCrossingIntoAShorterMonthLandsLaterThanASecondsOnlyWalkWouldSay() throws {
+    // February 2027 has 20 working days against January's 21, so a February day pays more
+    // and the goal should land *earlier* than a fixed-rate walk predicts. The direction of
+    // the error matters: it is not a rounding wobble, it tracks the month's shape.
+    let start = at(9, 0, day: 25, month: 1)
+    let goal = SavingsGoal(
+        name: "Winter", amount: standard.dailyPay(at: start, calendar: cal()) * 12, startedAt: start
+    )
+    let projection = GoalCalculator.projection(
+        for: goal, config: standard, now: start, calendar: cal()
+    )
+    let readyAt = try #require(projection.readyAt)
+    let banked = GoalCalculator.earned(for: goal, config: standard, now: readyAt, calendar: cal())
+    #expect(abs(banked - goal.amount) < 1.0, "landed at \(describe(readyAt)) with \(banked)")
+}
+
+// MARK: - The backward walk has no business being bounded
+
+private func atYear(_ year: Int, _ month: Int, _ day: Int, _ hour: Int = 0) -> Date {
+    var parts = DateComponents()
+    parts.year = year; parts.month = month; parts.day = day; parts.hour = hour
+    return cal().date(from: parts)!
+}
+
+@Test func aGoalOlderThanTheProjectionHorizonStillCountsEveryMonthSince() {
+    // A complete month of work pays exactly one monthly salary, whatever shape the month
+    // has — that is what dividing by the month's own working days buys. So a goal started
+    // at the top of one month and read at the top of another is owed precisely that many
+    // salaries, and the arithmetic needs no reference implementation to check it against.
+    //
+    // The backward walk borrowed the forward walk's five-year cap. That cap exists to stop
+    // an unaffordable goal looping forever; pointed at the past it just stops counting, and
+    // an old goal's progress bar sits permanently below where it belongs.
+    let start = atYear(2018, 1, 1)
+    let now = atYear(2026, 8, 1)
+    let months = 103.0                        // January 2018 through July 2026
+
+    let goal = SavingsGoal(name: "Ancient", amount: 1e12, startedAt: start)
+    let earned = GoalCalculator.earned(for: goal, config: standard, now: now, calendar: cal())
+
+    #expect(abs(earned - months * 10_000) < 1.0, "earned \(earned) of an expected \(months * 10_000)")
+}
+
+@Test func aGoalStartedThisYearIsUnaffectedByLiftingTheCap() {
+    // The regression guard: eight months is well inside the old cap, so this number may
+    // not move at all.
+    let goal = SavingsGoal(name: "Recent", amount: 1e9, startedAt: atYear(2025, 12, 1))
+    let earned = GoalCalculator.earned(for: goal, config: standard, now: atYear(2026, 8, 1), calendar: cal())
+    #expect(abs(earned - 8 * 10_000) < 1.0)
+}

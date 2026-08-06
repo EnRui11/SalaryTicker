@@ -57,12 +57,14 @@ extension SalaryConfigDTO {
                     return (key, override)
                 }
             ),
-            goals: goals.compactMap { dto in
-                // A goal whose id no longer parses is dropped rather than failing the load
-                // and costing the user every other setting they have.
-                guard let id = UUID(uuidString: dto.id) else { return nil }
-                return SavingsGoal(
-                    id: id, name: dto.name, amount: dto.amount, isPinned: dto.isPinned,
+            goals: goals.map { dto in
+                // A goal whose id no longer parses keeps everything the user actually
+                // typed and is given a fresh identity. Dropping it would once have been
+                // the lesser evil against failing the whole load, but the decoder no
+                // longer fails that way, so silently losing the goal buys nothing.
+                SavingsGoal(
+                    id: UUID(uuidString: dto.id) ?? UUID(),
+                    name: dto.name, amount: dto.amount, isPinned: dto.isPinned,
                     startedAt: Date(timeIntervalSince1970: dto.startedAt)
                 )
             },

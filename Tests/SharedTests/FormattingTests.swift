@@ -285,3 +285,46 @@ private func config(_ mutate: (inout SalaryConfig) -> Void = { _ in }) -> Salary
 @Test func theDefaultCurrencySymbolIsTheDollar() {
     #expect(SalaryConfig.default.currencySymbol == "$")
 }
+
+// MARK: - Rendering must happen in the zone the schedule is read in
+//
+// The domain half of the time-zone override is tested against every IANA identifier. The
+// presentation layer then threw the answer away and rendered in this Mac's own zone, so a
+// projection computed for six in the evening in Kuala Lumpur was shown as six in the
+// morning to anyone whose Mac was in New York.
+
+private func instantInKL(month: Int, day: Int, hour: Int, minute: Int = 0) -> Date {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "Asia/Kuala_Lumpur")!
+    var parts = DateComponents()
+    parts.year = 2026; parts.month = month; parts.day = day
+    parts.hour = hour; parts.minute = minute
+    return calendar.date(from: parts)!
+}
+
+@Test func aReadyTimestampIsRenderedInTheConfiguredZone() {
+    let sixInTheEvening = instantInKL(month: 8, day: 6, hour: 18)
+    // German for a 24-hour clock, so the assertion does not hinge on AM/PM wording.
+    let here = Formatting.readyTimestamp(
+        sixInTheEvening, language: .german, timeZone: TimeZone(identifier: "Asia/Kuala_Lumpur")!
+    )
+    let newYork = Formatting.readyTimestamp(
+        sixInTheEvening, language: .german, timeZone: TimeZone(identifier: "America/New_York")!
+    )
+
+    #expect(here.contains("18"))
+    #expect(newYork.contains("06"))
+    #expect(here != newYork)
+}
+
+@Test func theMonthTitleFollowsTheConfiguredZoneAcrossAMonthBoundary() {
+    // Half past midnight on 1 September in Kuala Lumpur is still August in New York.
+    let justAfterMidnight = instantInKL(month: 9, day: 1, hour: 0, minute: 30)
+
+    #expect(Formatting.monthTitle(
+        justAfterMidnight, language: .english, timeZone: TimeZone(identifier: "Asia/Kuala_Lumpur")!
+    ) == "September 2026")
+    #expect(Formatting.monthTitle(
+        justAfterMidnight, language: .english, timeZone: TimeZone(identifier: "America/New_York")!
+    ) == "August 2026")
+}

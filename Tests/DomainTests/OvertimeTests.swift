@@ -176,3 +176,29 @@ func aSwitchedOffToggleBehavesExactlyAsIfTheFeatureDidNotExist(now: Date) {
     let result = EarningsCalculator.earnings(config: off, at: at(14, 0), calendar: cal())
     #expect(result.status.isAccruing == false)
 }
+
+// MARK: - A multiplier that pays nothing is not overtime
+
+@Test(arguments: [0.0, -2.0, Double.nan])
+func overtimeThatCannotPayIsNotAnnouncedAsOvertime(multiplier: Double) {
+    // `effectiveOvertimeMultiplier` already refuses to pay at these values, but the seconds
+    // were counted anyway and handed to the status line — so the panel read "Overtime for
+    // 1h 20m" beside a number that had not moved since clock-off.
+    let config = overtimeConfig(multiplier: multiplier)
+    let earnings = EarningsCalculator.earnings(config: config, at: at(19, 20), calendar: cal())
+
+    #expect(earnings.overtimeEarned == 0)
+    #expect(earnings.overtimeSeconds == 0)
+    #expect(earnings.status == .afterWork)
+}
+
+@Test func aMultiplierOfOneStillCountsAsOvertime() {
+    // The boundary in the other direction: working past clock-off for ordinary pay is
+    // still overtime, and must keep saying so.
+    let config = overtimeConfig(multiplier: 1.0)
+    let earnings = EarningsCalculator.earnings(config: config, at: at(19, 20), calendar: cal())
+
+    #expect(earnings.overtimeSeconds == hours(1) + 20 * 60)
+    #expect(earnings.overtimeEarned > 0)
+    #expect(earnings.status == .overtime(elapsed: hours(1) + 20 * 60))
+}

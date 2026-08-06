@@ -108,7 +108,9 @@ struct SettingsView: View {
                     overview: viewModel.monthOverview,
                     text: text,
                     monthTitle: Formatting.monthTitle(
-                        viewModel.displayedMonthDate, language: config.language
+                        viewModel.displayedMonthDate,
+                        language: config.language,
+                        timeZone: config.calendar().timeZone
                     ),
                     isCurrentMonth: viewModel.isShowingCurrentMonth,
                     onToggleDay: { viewModel.cycleDayOverride($0) },
@@ -230,7 +232,10 @@ struct SettingsView: View {
         let projection = viewModel.projection(for: goal)
         let cost = text.workdaysCost(Formatting.workdays(projection.workdays, language: config.language))
         guard let readyAt = projection.readyAt else { return "\(cost) · \(text.goalOutOfReach)" }
-        return "\(cost) · \(text.readyBy(Formatting.readyTimestamp(readyAt, language: config.language)))"
+        let stamp = Formatting.readyTimestamp(
+            readyAt, language: config.language, timeZone: config.calendar().timeZone
+        )
+        return "\(cost) · \(text.readyBy(stamp))"
     }
 
     private var generalTab: some View {

@@ -130,7 +130,9 @@ struct MenuPanelView: View {
     private func caption(for projection: GoalProjection) -> String {
         guard let readyAt = projection.readyAt else { return text.goalOutOfReach }
         if projection.progress >= 1 { return text.goalReached }
-        return text.readyBy(Formatting.readyTimestamp(readyAt, language: config.language))
+        return text.readyBy(Formatting.readyTimestamp(
+            readyAt, language: config.language, timeZone: config.calendar().timeZone
+        ))
     }
 
     private func row(_ label: String, _ value: String) -> some View {
