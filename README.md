@@ -126,7 +126,7 @@ Sources/
     Entities/                 Earnings, WorkStatus, MonthOverview
     ValueObjects/             TimeOfDay, SalaryConfig, AppLanguage, DayKey
     Services/                 EarningsCalculator
-    Repositories/             SettingsRepository, LoginItemService (protocols only)
+    Repositories/             SettingsRepository, LoginItemService, TimeSource (protocols only)
   Application/
     UseCases/                 CalculateEarnings, Load/SaveSettings, SetLaunchAtLogin
   Data/
@@ -140,16 +140,32 @@ Sources/
   Core/
     System/                   SMAppServiceLoginItem
     DI/                       AppContainer (composition root)
-  Presentation/               executable target
-    App/ Pages/ Components/ State/ Debug/
+  Presentation/
+    State/                    TickerViewModel — its own library target, see below
+    App/ Pages/ Components/ Debug/    executable target
 Tests/
-  DomainTests/ ApplicationTests/ DataTests/ SharedTests/
+  DomainTests/ ApplicationTests/ DataTests/ SharedTests/ PresentationTests/
 Packaging/                    Info.plist + build script
 ```
 
 Module names carry a `Salary` prefix (`SalaryDomain`, `SalaryData`, …) because bare `Data`
 and `Core` would shadow Foundation types and system modules. The folders keep the plain
 layer names.
+
+### Why the view model is a target of its own
+
+An executable target cannot be imported by tests, and the view model is the only part of
+the app that keeps state between ticks: caches of the month sweep and of each goal's
+history, all keyed on which day it is. Nothing else needs a clock — the calculators take
+`now` as an argument, which is what makes them so easy to test — but a cache keyed on
+"today" is wrong for exactly one moment a day, at an hour nobody is watching.
+
+So `TickerViewModel` takes a `TimeSource`, and `PresentationTests` moves the day underneath
+a single live instance: the ticker starts over, the month total absorbs yesterday, the grid
+moves its marker, the goals keep counting, and the daily rate changes as August's 21
+working days give way to September's 22. The same tests cover the clicks — paging the
+month, marking leave, adding and removing goals — which are otherwise unreachable without
+accessibility permissions.
 
 ## Localization
 

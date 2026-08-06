@@ -9,26 +9,31 @@ import SalaryCore
 /// It owns no business logic — every question goes to a use case. It holds no running
 /// total either, so there is nothing to stop outside working hours and nothing to reset
 /// at midnight.
+///
+/// It does hold caches, and those are the reason this type lives in a library target
+/// rather than in the executable: they are keyed on the current day, so they are only
+/// wrong once a day, at an hour nobody is watching.
 @MainActor
 @Observable
-final class TickerViewModel {
+public final class TickerViewModel {
 
-    var config: SalaryConfig
-    private(set) var earnings: Earnings
+    public var config: SalaryConfig
+    public private(set) var earnings: Earnings
     /// The month grid shown in Settings, for whichever month is being browsed.
-    private(set) var monthOverview: MonthOverview
+    public private(set) var monthOverview: MonthOverview
     /// Months away from the current one. 0 is this month; the grid can be paged either way.
-    private(set) var monthOffset = 0
+    public private(set) var monthOffset = 0
     /// Hourly rate for the month on screen, which is not always the current one — a month
     /// with more working days pays less per day, and that is worth seeing before you plan
     /// leave into it.
-    private(set) var displayedHourlyPay: Double = 0
+    public private(set) var displayedHourlyPay: Double = 0
     /// The month sweep behind the numbers. Same lifetime as the grid: it only changes when
     /// the day rolls over or the settings do, so the ticker reuses it instead of walking
     /// the month once a second.
     private var monthTotals: SalaryConfig.MonthTotals
 
     private let container: AppContainer
+    private let clock: any TimeSource
     private var tickTask: Task<Void, Never>?
 
     // Recomputing the grid means ~31 calendar operations. `earnings` changes every second,
@@ -38,14 +43,16 @@ final class TickerViewModel {
     private var overviewDay: Date?
     private var overviewOffset = 0
 
-    init(container: AppContainer = AppContainer()) {
+    public init(container: AppContainer = AppContainer(), clock: any TimeSource = SystemTimeSource()) {
         self.container = container
+        self.clock = clock
+        let now = clock.now
         let loaded = container.loadSettings()
         self.config = loaded
-        self.earnings = container.calculateEarnings(config: loaded, at: Date())
-        self.monthOverview = loaded.monthOverview(for: Date(), now: Date(), calendar: loaded.calendar())
-        self.monthTotals = loaded.monthTotals(for: Date(), calendar: loaded.calendar())
-        self.displayedHourlyPay = loaded.hourlyPay(at: Date(), calendar: loaded.calendar())
+        self.earnings = container.calculateEarnings(config: loaded, at: now)
+        self.monthOverview = loaded.monthOverview(for: now, now: now, calendar: loaded.calendar())
+        self.monthTotals = loaded.monthTotals(for: now, calendar: loaded.calendar())
+        self.displayedHourlyPay = loaded.hourlyPay(at: now, calendar: loaded.calendar())
 
         // Make the system match what the user asked for. Only ever registers — see
         // `SetLaunchAtLoginUseCase.reconcile`.
@@ -54,7 +61,7 @@ final class TickerViewModel {
 
     // MARK: Ticking
 
-    func start() {
+    public func start() {
         guard tickTask == nil else { return }
         tickTask = Task { [weak self] in
             while !Task.isCancelled {
@@ -71,13 +78,13 @@ final class TickerViewModel {
         }
     }
 
-    func stop() {
+    public func stop() {
         tickTask?.cancel()
         tickTask = nil
     }
 
-    func refresh() {
-        let now = Date()
+    public func refresh() {
+        let now = clock.now
         refreshMonthOverviewIfNeeded(at: now)
         earnings = container.calculateEarnings(config: config, at: now, monthTotals: monthTotals)
 
@@ -150,30 +157,28 @@ final class TickerViewModel {
     }
 
     /// The first instant of the month currently on screen, for the grid's title.
-    var displayedMonthDate: Date {
-        displayedMonth(at: Date(), calendar: config.calendar())
+    public var displayedMonthDate: Date {
+        displayedMonth(at: clock.now, calendar: config.calendar())
     }
 
-    var isShowingCurrentMonth: Bool { monthOffset == 0 }
+    public var isShowingCurrentMonth: Bool { monthOffset == 0 }
 
-    func stepMonth(by delta: Int) {
+    public func stepMonth(by delta: Int) {
         // Two years either way is plenty for marking leave, and keeps a stuck arrow key
         // from wandering into the year 3000.
         monthOffset = min(max(monthOffset + delta, -24), 24)
         refresh()
     }
 
-    func showCurrentMonth() {
+    public func showCurrentMonth() {
         monthOffset = 0
         refresh()
     }
 
-    // MARK: Config
-
     // MARK: Goals
 
     /// Projections for the goals pinned to the panel, refreshed with the tick.
-    private(set) var pinnedGoals: [(goal: SavingsGoal, projection: GoalProjection)] = []
+    public private(set) var pinnedGoals: [(goal: SavingsGoal, projection: GoalProjection)] = []
 
     // Only two things in a projection are expensive, and neither moves within a day: the
     // walk back over every day since saving started, and the walk forward to the date it
@@ -183,41 +188,41 @@ final class TickerViewModel {
     private var goalCacheConfig: SalaryConfig?
     private var goalCacheDay: Date?
 
-    func projection(for goal: SavingsGoal) -> GoalProjection {
+    public func projection(for goal: SavingsGoal) -> GoalProjection {
         GoalCalculator.projection(
-            for: goal, config: config, now: Date(), calendar: config.calendar()
+            for: goal, config: config, now: clock.now, calendar: config.calendar()
         )
     }
 
-    func addGoal() {
-        config.goals.append(SavingsGoal(name: "", amount: 0, isPinned: true))
+    public func addGoal() {
+        config.goals.append(SavingsGoal(name: "", amount: 0, isPinned: true, startedAt: clock.now))
         configChanged()
     }
 
-    func removeGoal(_ id: SavingsGoal.ID) {
+    public func removeGoal(_ id: SavingsGoal.ID) {
         config.goals.removeAll { $0.id == id }
         configChanged()
     }
 
     /// Cycles a day between working, paid leave and unpaid leave. Works on any month the
     /// grid is showing, not just the current one.
-    func cycleDayOverride(_ key: DayKey) {
+    public func cycleDayOverride(_ key: DayKey) {
         let next = DayOverride.next(after: config.dayOverrides[key])
         config.dayOverrides[key] = next
         configChanged()
     }
 
     /// Call after any edit in Settings: persist and reflect it in the menu bar immediately.
-    func configChanged() {
+    public func configChanged() {
         container.saveSettings(config)
         refresh()
     }
 
     // MARK: Launch at login
 
-    var isLaunchAtLoginSupported: Bool { container.setLaunchAtLogin.isSupported }
+    public var isLaunchAtLoginSupported: Bool { container.setLaunchAtLogin.isSupported }
 
-    func setLaunchAtLogin(_ enabled: Bool) -> Result<LoginItemState, any Error> {
+    public func setLaunchAtLogin(_ enabled: Bool) -> Result<LoginItemState, any Error> {
         container.setLaunchAtLogin(enabled)
     }
 }

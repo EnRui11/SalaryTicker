@@ -2,6 +2,7 @@ import SwiftUI
 import SalaryDomain
 import SalaryShared
 import SalaryCore
+import SalaryPresentation
 
 @main
 struct SalaryTickerApp: App {

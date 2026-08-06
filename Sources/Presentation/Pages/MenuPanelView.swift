@@ -2,6 +2,7 @@ import SwiftUI
 import SalaryDomain
 import SalaryShared
 import SalaryCore
+import SalaryPresentation
 
 /// The panel that drops down from the status item.
 struct MenuPanelView: View {

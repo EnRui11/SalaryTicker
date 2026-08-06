@@ -32,11 +32,24 @@ let package = Package(
             path: "Sources/Core"
         ),
 
-        // The app itself: SwiftUI scenes, pages and view state.
+        // View state, split out of the executable because an executable target cannot be
+        // imported by tests. It is the only part of the presentation layer with state of
+        // its own — caches keyed on the current day — and therefore the only part where a
+        // test can find something the type checker cannot.
+        .target(
+            name: "SalaryPresentation",
+            dependencies: ["SalaryDomain", "SalaryApplication", "SalaryCore"],
+            path: "Sources/Presentation/State"
+        ),
+
+        // The app itself: SwiftUI scenes, pages and components.
         .executableTarget(
             name: "SalaryTicker",
-            dependencies: ["SalaryDomain", "SalaryApplication", "SalaryShared", "SalaryCore"],
-            path: "Sources/Presentation"
+            dependencies: [
+                "SalaryDomain", "SalaryApplication", "SalaryShared", "SalaryCore", "SalaryPresentation",
+            ],
+            path: "Sources/Presentation",
+            exclude: ["State"]
         ),
 
         .testTarget(name: "DomainTests", dependencies: ["SalaryDomain"], path: "Tests/DomainTests"),
@@ -47,5 +60,10 @@ let package = Package(
             path: "Tests/ApplicationTests"
         ),
         .testTarget(name: "SharedTests", dependencies: ["SalaryShared", "SalaryDomain"], path: "Tests/SharedTests"),
+        .testTarget(
+            name: "PresentationTests",
+            dependencies: ["SalaryPresentation", "SalaryDomain", "SalaryCore"],
+            path: "Tests/PresentationTests"
+        ),
     ]
 )

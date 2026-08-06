@@ -3,6 +3,7 @@ import SwiftUI
 import SalaryDomain
 import SalaryShared
 import SalaryCore
+import SalaryPresentation
 
 /// Offscreen rendering of the UI, used to eyeball every state without needing
 /// screen-recording or accessibility permissions.
