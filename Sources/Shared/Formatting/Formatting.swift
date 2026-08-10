@@ -118,6 +118,9 @@ public enum Formatting {
     public static func menuBarContent(_ earnings: Earnings, config: SalaryConfig) -> MenuBarContent {
         let strings = Strings(config.language)
 
+        // Asked for directly, so it outranks every other rule below.
+        if config.menuBarHidesAmount { return .icon }
+
         if config.menuBarIconOnlyWhenIdle && !earnings.status.isAccruing {
             return .icon
         }

@@ -59,6 +59,16 @@ public struct SalaryConfig: Equatable, Sendable {
     public var menuBarShowsCurrencySymbol: Bool
     /// Outside working hours, collapse the status item to a small icon.
     public var menuBarIconOnlyWhenIdle: Bool
+    /// Take the money out of the menu bar until it is asked back.
+    ///
+    /// Not the same thing as `menuBarIconOnlyWhenIdle`, which hides the figure exactly when
+    /// it matters least — evenings and weekends — and shows it right through the working
+    /// day, which is when the screen is being shared. This one hides it on demand, whatever
+    /// the clock says.
+    ///
+    /// It never hides *everything*: the ring, or the glyph standing in for it, has to stay
+    /// or there would be nothing left to click to bring the number back.
+    public var menuBarHidesAmount: Bool
     /// Keep counting after clock-off.
     ///
     /// The app cannot know when you actually stopped, so overtime is capped rather than
@@ -94,6 +104,7 @@ public struct SalaryConfig: Equatable, Sendable {
         menuBarShowsProgressRing: Bool = true,
         menuBarShowsCurrencySymbol: Bool = true,
         menuBarIconOnlyWhenIdle: Bool = false,
+        menuBarHidesAmount: Bool = false,
         overtimeEnabled: Bool = false,
         overtimeMultiplier: Double = 1.0,
         overtimeMaxHours: Int = 4,
@@ -117,6 +128,7 @@ public struct SalaryConfig: Equatable, Sendable {
         self.menuBarShowsProgressRing = menuBarShowsProgressRing
         self.menuBarShowsCurrencySymbol = menuBarShowsCurrencySymbol
         self.menuBarIconOnlyWhenIdle = menuBarIconOnlyWhenIdle
+        self.menuBarHidesAmount = menuBarHidesAmount
         self.overtimeEnabled = overtimeEnabled
         self.overtimeMultiplier = overtimeMultiplier
         self.overtimeMaxHours = overtimeMaxHours

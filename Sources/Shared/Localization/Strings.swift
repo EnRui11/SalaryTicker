@@ -374,6 +374,29 @@ public struct Strings: Sendable {
           ms: "Tunjuk simbol mata wang")
     }
 
+    public var menuBarHideAmount: String {
+        t(en: "Hide amount in menu bar", zh: "在菜单栏隐藏金额",
+          ja: "メニューバーで金額を隠す", ko: "메뉴 막대에서 금액 숨기기",
+          es: "Ocultar el importe en la barra de menús",
+          fr: "Masquer le montant dans la barre des menus",
+          de: "Betrag in der Menüleiste ausblenden",
+          pt: "Ocultar o valor na barra de menus",
+          ms: "Sembunyikan jumlah pada bar menu")
+    }
+
+    /// The panel's own one-click version of the setting above.
+    public var hideAmountAction: String {
+        t(en: "Hide amount", zh: "隐藏金额", ja: "金額を隠す", ko: "금액 숨기기",
+          es: "Ocultar importe", fr: "Masquer le montant", de: "Betrag ausblenden",
+          pt: "Ocultar valor", ms: "Sembunyikan jumlah")
+    }
+
+    public var showAmountAction: String {
+        t(en: "Show amount", zh: "显示金额", ja: "金額を表示", ko: "금액 표시",
+          es: "Mostrar importe", fr: "Afficher le montant", de: "Betrag einblenden",
+          pt: "Mostrar valor", ms: "Tunjuk jumlah")
+    }
+
     public var menuBarIconWhenIdle: String {
         t(en: "Icon only outside working hours", zh: "非工作时段只显示图标",
           ja: "勤務時間外はアイコンのみ", ko: "근무 시간 외에는 아이콘만",

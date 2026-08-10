@@ -279,3 +279,16 @@ private func repository(seededWith json: String? = nil, suite: String) -> UserDe
     #expect(loaded == original)
     #expect(loaded.monthlyAllowance == 1_000)
 }
+
+@Test func hidingTheAmountSurvivesASaveAndLoadRoundTrip() {
+    let store = repository(suite: "test.hideamount")
+    var original = SalaryConfig.default
+    original.menuBarHidesAmount = true
+    store.save(original)
+    #expect(store.load().menuBarHidesAmount)
+}
+
+@Test func aConfigFromBeforeTheHideToggleExistedShowsTheAmount() {
+    let config = repository(seededWith: #"{"monthlySalary":5000}"#, suite: "test.prehide").load()
+    #expect(config.menuBarHidesAmount == false)
+}

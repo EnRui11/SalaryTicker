@@ -159,6 +159,21 @@ struct MenuPanelView: View {
 
     private var actions: some View {
         VStack(spacing: 6) {
+            // One click from the menu bar, because the moment you need this — a call
+            // starting, someone reading over your shoulder — is not a moment to go hunting
+            // through a settings window.
+            Button {
+                viewModel.toggleMenuBarAmount()
+            } label: {
+                Label(
+                    config.menuBarHidesAmount ? text.showAmountAction : text.hideAmountAction,
+                    systemImage: config.menuBarHidesAmount ? "eye" : "eye.slash"
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut("h")
+
             SettingsLink {
                 Label(text.settingsAction, systemImage: "gearshape")
                     .frame(maxWidth: .infinity, alignment: .leading)

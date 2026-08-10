@@ -327,3 +327,45 @@ private func rig(config: SalaryConfig = liveConfig(), start: Date) -> Rig {
     #expect(rig.viewModel.pinnedGoals.isEmpty)
     #expect(rig.viewModel.projection(for: goals[0]).readyAt != nil)
 }
+
+// MARK: - Hiding the amount
+
+@Test @MainActor func hidingTheAmountFromThePanelSticksAndIsSaved() {
+    // A click in the panel, which is the whole point: the moment you need this is not a
+    // moment to go looking through a settings window.
+    let rig = rig(start: at(16, 0, day: 5))
+    #expect(rig.viewModel.config.menuBarHidesAmount == false)
+
+    rig.viewModel.toggleMenuBarAmount()
+    #expect(rig.viewModel.config.menuBarHidesAmount)
+    #expect(rig.settings.stored.menuBarHidesAmount)
+
+    rig.viewModel.toggleMenuBarAmount()
+    #expect(rig.viewModel.config.menuBarHidesAmount == false)
+    #expect(rig.settings.stored.menuBarHidesAmount == false)
+    #expect(rig.settings.saveCount == 2)
+}
+
+@Test @MainActor func hidingTheAmountChangesNothingAboutWhatIsEarned() {
+    // It is a display switch. If it ever touched the money the app would be lying twice.
+    let rig = rig(start: at(16, 0, day: 5))
+    rig.viewModel.refresh()
+    let before = rig.viewModel.earnings
+
+    rig.viewModel.toggleMenuBarAmount()
+    #expect(rig.viewModel.earnings.todayEarned == before.todayEarned)
+    #expect(rig.viewModel.earnings.monthEarned == before.monthEarned)
+}
+
+@Test @MainActor func theHiddenStateSurvivesARelaunch() {
+    // Quitting with the amount hidden and coming back to it on screen would defeat the
+    // point of having hidden it.
+    let rig = rig(start: at(16, 0, day: 5))
+    rig.viewModel.toggleMenuBarAmount()
+
+    let container = AppContainer(
+        settings: rig.settings, loginItem: FakeLoginItem(), calendar: testCalendar()
+    )
+    let relaunched = TickerViewModel(container: container, clock: FakeClock(at(16, 0, day: 5)))
+    #expect(relaunched.config.menuBarHidesAmount)
+}

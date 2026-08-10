@@ -272,6 +272,7 @@ struct SettingsView: View {
                 Toggle(text.menuBarShowRing, isOn: $viewModel.config.menuBarShowsProgressRing)
                 Toggle(text.menuBarShowSymbol, isOn: $viewModel.config.menuBarShowsCurrencySymbol)
                 Toggle(text.menuBarIconWhenIdle, isOn: $viewModel.config.menuBarIconOnlyWhenIdle)
+                Toggle(text.menuBarHideAmount, isOn: $viewModel.config.menuBarHidesAmount)
                 LabeledContent(text.menuBarPreview) {
                     switch Formatting.menuBarContent(viewModel.earnings, config: config) {
                     case .text(let preview):

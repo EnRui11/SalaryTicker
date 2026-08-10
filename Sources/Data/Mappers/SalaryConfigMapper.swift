@@ -28,6 +28,7 @@ extension SalaryConfigDTO {
         menuBarShowsProgressRing = config.menuBarShowsProgressRing
         menuBarShowsCurrencySymbol = config.menuBarShowsCurrencySymbol
         menuBarIconOnlyWhenIdle = config.menuBarIconOnlyWhenIdle
+        menuBarHidesAmount = config.menuBarHidesAmount
         overtimeEnabled = config.overtimeEnabled
         overtimeMultiplier = config.overtimeMultiplier
         overtimeMaxHours = config.overtimeMaxHours
@@ -73,6 +74,7 @@ extension SalaryConfigDTO {
             menuBarShowsProgressRing: menuBarShowsProgressRing,
             menuBarShowsCurrencySymbol: menuBarShowsCurrencySymbol,
             menuBarIconOnlyWhenIdle: menuBarIconOnlyWhenIdle,
+            menuBarHidesAmount: menuBarHidesAmount,
             overtimeEnabled: overtimeEnabled,
             overtimeMultiplier: overtimeMultiplier,
             overtimeMaxHours: overtimeMaxHours,

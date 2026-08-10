@@ -328,3 +328,42 @@ private func instantInKL(month: Int, day: Int, hour: Int, minute: Int = 0) -> Da
         justAfterMidnight, language: .english, timeZone: TimeZone(identifier: "America/New_York")!
     ) == "August 2026")
 }
+
+// MARK: - Hiding the amount
+//
+// `menuBarIconOnlyWhenIdle` looks like the control for this and is not: it collapses the
+// item exactly when the number is least sensitive — evenings, weekends — and shows it all
+// through the working day, which is when the screen is actually being shared. This is the
+// one that hides it on demand.
+
+@Test func hidingTheAmountLeavesTheMenuBarWithNoMoneyInIt() {
+    var hidden = SalaryConfig.default
+    hidden.menuBarHidesAmount = true
+
+    // Every state, including the ones the idle setting deliberately leaves showing.
+    for status: WorkStatus in [
+        .working(endsIn: 60), .lunch(endsIn: 60), .overtime(elapsed: 60),
+        .beforeWork(startsIn: 60), .afterWork, .dayOff, .misconfigured,
+    ] {
+        #expect(Formatting.menuBarContent(earnings(status), config: hidden) == .icon, "\(status)")
+        #expect(Formatting.menuBarText(earnings(status), config: hidden) == "")
+    }
+}
+
+@Test func hidingTheAmountOverridesTheIdleSettingRatherThanFightingIt() {
+    var both = SalaryConfig.default
+    both.menuBarHidesAmount = true
+    both.menuBarIconOnlyWhenIdle = false
+    #expect(Formatting.menuBarContent(earnings(.working(endsIn: 60)), config: both) == .icon)
+}
+
+@Test func theAmountIsShowingUntilSomeoneHidesIt() {
+    // The default has to be visible: a salary ticker that starts up hidden is a broken app,
+    // not a discreet one.
+    #expect(SalaryConfig.default.menuBarHidesAmount == false)
+
+    var shown = SalaryConfig.default
+    shown.menuBarHidesAmount = false
+    #expect(Formatting.menuBarContent(earnings(.working(endsIn: 60)), config: shown)
+        != .icon)
+}

@@ -237,6 +237,15 @@ public final class TickerViewModel {
         configChanged()
     }
 
+    /// Take the amount out of the menu bar, or put it back.
+    ///
+    /// Persisted like any other setting: quitting with it hidden and relaunching to find
+    /// the number back on screen would defeat the point of having hidden it.
+    public func toggleMenuBarAmount() {
+        config.menuBarHidesAmount.toggle()
+        configChanged()
+    }
+
     /// Call after any edit in Settings: persist and reflect it in the menu bar immediately.
     public func configChanged() {
         container.saveSettings(config)
