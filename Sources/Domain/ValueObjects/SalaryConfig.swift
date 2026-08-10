@@ -5,8 +5,19 @@ import Foundation
 /// A domain value object: no `Codable`, no knowledge of where it is stored. Persistence
 /// lives in the data layer as `SalaryConfigDTO`.
 public struct SalaryConfig: Equatable, Sendable {
-    /// Gross monthly salary, in whatever currency `currencySymbol` denotes.
+    /// Basic monthly salary, in whatever currency `currencySymbol` denotes.
+    ///
+    /// The basic specifically, not the gross: this is the part unpaid leave comes out of.
+    /// Anything paid on top of it that leave does not touch belongs in `monthlyAllowance`.
     public var monthlySalary: Double
+    /// Fixed monthly allowance — transport, phone, whatever the payslip lists beside the
+    /// basic and pays in full whether or not you took leave without pay.
+    ///
+    /// Zero for anyone who has not set one, which is why adding it changed no existing
+    /// answer. It earns alongside the basic and is part of what the menu bar counts; the
+    /// difference is only in what leave does to it, and that difference lives in
+    /// `dailyPay(using:)`.
+    public var monthlyAllowance: Double
     public var workStart: TimeOfDay
     public var workEnd: TimeOfDay
     /// When enabled, the lunch window is unpaid and excluded from the daily total.
@@ -66,6 +77,7 @@ public struct SalaryConfig: Equatable, Sendable {
 
     public init(
         monthlySalary: Double = 10_000,
+        monthlyAllowance: Double = 0,
         workStart: TimeOfDay = TimeOfDay(9, 0),
         workEnd: TimeOfDay = TimeOfDay(18, 0),
         lunchEnabled: Bool = true,
@@ -88,6 +100,7 @@ public struct SalaryConfig: Equatable, Sendable {
         launchAtLoginEnabled: Bool = false
     ) {
         self.monthlySalary = monthlySalary
+        self.monthlyAllowance = monthlyAllowance
         self.workStart = workStart
         self.workEnd = workEnd
         self.lunchEnabled = lunchEnabled
@@ -194,8 +207,15 @@ extension SalaryConfig {
 
     /// Everything the month sweep produces, gathered in one pass.
     public struct MonthTotals: Equatable, Sendable {
-        /// The divisor: scheduled days, a half day counting a half.
+        /// The basic's divisor: scheduled days minus paid leave, a half day counting a half.
         public var equivalents: Double
+        /// Every scheduled day, before any leave is taken off. Only used to keep a month
+        /// that is entirely holiday from dividing by zero.
+        public var scheduledWeight: Double
+        /// The days that actually earn — scheduled, minus leave of either kind. This is the
+        /// allowance's divisor: a fixed monthly sum has to be spread over the days that are
+        /// really worked, which is what leaves it whole when a day goes unpaid.
+        public var earningWeight: Double
         /// What the days before today are worth in pay, halves and leave accounted for.
         public var paidWeightBeforeToday: Double
         /// Days with any work scheduled, halves counted as whole days.
@@ -214,7 +234,7 @@ extension SalaryConfig {
     /// a measurable CPU load.
     public func monthTotals(for date: Date, calendar: Calendar = .current) -> MonthTotals {
         var totals = MonthTotals(
-            equivalents: 0, paidWeightBeforeToday: 0,
+            equivalents: 0, scheduledWeight: 0, earningWeight: 0, paidWeightBeforeToday: 0,
             workdayCount: 0, completedWorkdayCount: 0, daysOffCount: 0
         )
         let parts = calendar.dateComponents([.year, .month, .day], from: date)
@@ -236,6 +256,8 @@ extension SalaryConfig {
 
             let divisorWeight = (override == .paidLeave) ? 0 : weight
             totals.equivalents += divisorWeight
+            totals.scheduledWeight += weight
+            totals.earningWeight += (override == nil) ? weight : 0
             if divisorWeight > 0 { totals.workdayCount += 1 }
             if override != nil { totals.daysOffCount += 1 }
             if dayOfMonth < today {
@@ -326,19 +348,30 @@ extension SalaryConfig {
 
     /// Pay for one FULL working day in the month containing `date`.
     /// A half day earns half of this.
-    ///
-    /// Marking days as paid leave raises this, because the same salary now covers fewer
-    /// working days. A month where every scheduled day is a paid holiday has nothing left
-    /// to absorb the pay, so it falls back to the full schedule rather than dividing by zero.
     public func dailyPay(at date: Date, calendar: Calendar = .current) -> Double {
-        var equivalents = workdayEquivalentsInMonth(of: date, calendar: calendar)
-        if equivalents <= 0 {
-            equivalents = sumOverMonth(of: date, calendar: calendar) { day in
-                scheduledWeight(for: day, calendar: calendar)
-            }
-        }
-        guard equivalents > 0 else { return 0 }
-        return monthlySalary / equivalents
+        dailyPay(using: monthTotals(for: date, calendar: calendar))
+    }
+
+    /// The same figure from a month sweep the caller already has.
+    ///
+    /// The two halves of a day's pay are divided by different things, and that difference
+    /// is the whole reason unpaid leave costs what it costs:
+    ///
+    /// - The **basic** is spread over the month's scheduled days with paid leave removed.
+    ///   Marking a paid holiday therefore raises it — the same salary now covers fewer
+    ///   working days — while unpaid leave stays in the divisor and simply goes unearned,
+    ///   which is how the month ends one day's basic short.
+    /// - The **allowance** arrives in full whatever leave is taken, so it is spread over
+    ///   the days that actually earn. Taking a day off without pay makes the remaining days
+    ///   carry a slightly larger share of it, and the month still pays every cent.
+    ///
+    /// A month where every scheduled day is a holiday has nothing left to absorb the basic,
+    /// so it falls back to the raw schedule rather than dividing by zero.
+    public func dailyPay(using totals: MonthTotals) -> Double {
+        let basicDivisor = totals.equivalents > 0 ? totals.equivalents : totals.scheduledWeight
+        let basic = basicDivisor > 0 ? monthlySalary / basicDivisor : 0
+        let allowance = totals.earningWeight > 0 ? monthlyAllowance / totals.earningWeight : 0
+        return basic + allowance
     }
 
     /// When this day starts and ends, and whether lunch comes out of it.
@@ -384,7 +417,9 @@ extension SalaryConfig {
     public var isValid: Bool {
         // `.isFinite` matters: the salary field accepts "1e400" and "∞", and an
         // infinite salary would turn into NaN the moment zero seconds have elapsed.
-        monthlySalary > 0 && monthlySalary.isFinite && dailyPaidMinutes > 0 && !workdays.isEmpty
+        monthlySalary > 0 && monthlySalary.isFinite
+            && monthlyAllowance >= 0 && monthlyAllowance.isFinite
+            && dailyPaidMinutes > 0 && !workdays.isEmpty
     }
 
     /// Whether this specific date is a day the user actually works.

@@ -48,6 +48,7 @@ struct SalaryConfigDTO: Codable, Equatable {
     }
 
     var monthlySalary: Double
+    var monthlyAllowance: Double
     var workStart: TimeOfDayDTO
     var workEnd: TimeOfDayDTO
     var lunchEnabled: Bool
@@ -85,6 +86,7 @@ struct SalaryConfigDTO: Codable, Equatable {
         let fallback = SalaryConfigDTO(SalaryConfig.default)
 
         monthlySalary = container.lenient(Double.self, .monthlySalary) ?? fallback.monthlySalary
+        monthlyAllowance = container.lenient(Double.self, .monthlyAllowance) ?? fallback.monthlyAllowance
         workStart = container.lenient(TimeOfDayDTO.self, .workStart) ?? fallback.workStart
         workEnd = container.lenient(TimeOfDayDTO.self, .workEnd) ?? fallback.workEnd
         lunchEnabled = container.lenient(Bool.self, .lunchEnabled) ?? fallback.lunchEnabled

@@ -4,6 +4,7 @@ import SalaryDomain
 extension SalaryConfigDTO {
     init(_ config: SalaryConfig) {
         monthlySalary = config.monthlySalary
+        monthlyAllowance = config.monthlyAllowance
         workStart = TimeOfDayDTO(config.workStart)
         workEnd = TimeOfDayDTO(config.workEnd)
         lunchEnabled = config.lunchEnabled
@@ -37,6 +38,7 @@ extension SalaryConfigDTO {
     func toDomain() -> SalaryConfig {
         SalaryConfig(
             monthlySalary: monthlySalary,
+            monthlyAllowance: monthlyAllowance,
             workStart: workStart.toDomain(),
             workEnd: workEnd.toDomain(),
             lunchEnabled: lunchEnabled,

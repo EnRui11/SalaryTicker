@@ -184,10 +184,31 @@ public struct Strings: Sendable {
           es: "Sueldo", fr: "Salaire", de: "Gehalt", pt: "Salário", ms: "Gaji")
     }
 
+    /// "Basic" rather than "monthly" since the allowance joined it: this is specifically
+    /// the part unpaid leave is deducted from, and the label has to say which one it is.
     public var monthlySalary: String {
-        t(en: "Monthly salary", zh: "月薪", ja: "月給", ko: "월급",
-          es: "Sueldo mensual", fr: "Salaire mensuel", de: "Monatsgehalt",
-          pt: "Salário mensal", ms: "Gaji bulanan")
+        t(en: "Basic salary", zh: "基本薪资", ja: "基本給", ko: "기본급",
+          es: "Salario base", fr: "Salaire de base", de: "Grundgehalt",
+          pt: "Salário base", ms: "Gaji pokok")
+    }
+
+    public var monthlyAllowance: String {
+        t(en: "Allowance", zh: "津贴", ja: "手当", ko: "수당",
+          es: "Complementos", fr: "Indemnités", de: "Zulagen",
+          pt: "Subsídios", ms: "Elaun")
+    }
+
+    /// The one thing the user has to understand to fill the two fields in correctly.
+    public var allowanceCaption: String {
+        t(en: "Unpaid leave comes out of the basic only. The allowance is paid in full.",
+          zh: "无薪假只从基本薪扣除，津贴照发全额。",
+          ja: "無給休暇は基本給からのみ差し引かれ、手当は全額支給されます。",
+          ko: "무급 휴가는 기본급에서만 공제되며, 수당은 전액 지급됩니다.",
+          es: "El permiso sin sueldo se descuenta solo del salario base; los complementos se pagan íntegros.",
+          fr: "Le congé sans solde est déduit du seul salaire de base ; les indemnités sont versées intégralement.",
+          de: "Unbezahlter Urlaub wird nur vom Grundgehalt abgezogen; Zulagen werden voll gezahlt.",
+          pt: "A licença sem vencimento é descontada apenas do salário base; os subsídios são pagos por inteiro.",
+          ms: "Cuti tanpa gaji ditolak daripada gaji pokok sahaja; elaun dibayar penuh.")
     }
 
     /// Month-neutral on purpose: the figure follows whichever month the grid is showing,
@@ -222,15 +243,15 @@ public struct Strings: Sendable {
     }
 
     public var salaryCaption: String {
-        t(en: "Daily pay = monthly salary ÷ paid workdays in that month. A paid holiday leaves that count, so every day you do work is worth a little more; unpaid leave stays in it, so the month comes up short by that day.",
-          zh: "日薪 = 月薪 ÷ 该月的计薪工作日。带薪假期会从这个天数里剔除，所以你真正上班的每一天都更值钱；无薪假期仍留在里面，因此当月会少这一天的钱。",
-          ja: "日給 = 月給 ÷ その月の有給勤務日数。有給休暇はこの日数から外れるため、実際に働く一日一日の価値が上がります。無給休暇は日数に残るので、その分だけ月の合計が減ります。",
-          ko: "일급 = 월급 ÷ 해당 월의 유급 근무일. 유급 휴일은 이 일수에서 빠지므로 실제로 일하는 하루하루의 가치가 올라갑니다. 무급 휴가는 일수에 남아 그만큼 월 합계가 줄어듭니다.",
-          es: "Pago diario = sueldo mensual ÷ días laborables pagados de ese mes. Un festivo pagado sale de esa cuenta, así que cada día trabajado vale un poco más; el permiso sin sueldo permanece en ella, así que el mes queda corto por ese día.",
-          fr: "Paie journalière = salaire mensuel ÷ jours ouvrés payés de ce mois. Un jour férié payé sort de ce compte, donc chaque jour travaillé vaut un peu plus ; un congé non payé y reste, et le mois est amputé de cette journée.",
-          de: "Tageslohn = Monatsgehalt ÷ bezahlte Arbeitstage in dem Monat. Ein bezahlter Feiertag fällt aus dieser Zahl heraus, dadurch ist jeder gearbeitete Tag etwas mehr wert; unbezahlter Urlaub bleibt darin, der Monat fällt also um diesen Tag geringer aus.",
-          pt: "Pagamento diário = salário mensal ÷ dias úteis pagos desse mês. Um feriado pago sai dessa contagem, então cada dia trabalhado vale um pouco mais; a folga sem pagamento permanece nela, então o mês fica menor nesse dia.",
-          ms: "Gaji harian = gaji bulanan ÷ hari kerja bergaji bulan itu. Cuti bergaji dikeluarkan daripada kiraan itu, jadi setiap hari anda bekerja bernilai sedikit lebih tinggi; cuti tanpa gaji kekal di dalamnya, jadi bulan itu berkurang sebanyak hari tersebut.")
+        t(en: "The basic is divided by that month's paid workdays. A paid holiday leaves that count, so every day you do work is worth a little more; unpaid leave stays in it, so the month comes up short by that day.",
+          zh: "基本薪 ÷ 该月的计薪工作日，就是每天的基本部分。带薪假期会从这个天数里剔除，所以你真正上班的每一天都更值钱；无薪假期仍留在里面，因此当月会少这一天的钱。",
+          ja: "基本給をその月の有給勤務日数で割ったものが、一日あたりの基本分です。有給休暇はこの日数から外れるため、実際に働く一日一日の価値が上がります。無給休暇は日数に残るので、その分だけ月の合計が減ります。",
+          ko: "기본급을 해당 월의 유급 근무일로 나눈 것이 하루치 기본 몫입니다. 유급 휴일은 이 일수에서 빠지므로 실제로 일하는 하루하루의 가치가 올라갑니다. 무급 휴가는 일수에 남아 그만큼 월 합계가 줄어듭니다.",
+          es: "El salario base se divide entre los días laborables pagados de ese mes. Un festivo pagado sale de esa cuenta, así que cada día trabajado vale un poco más; el permiso sin sueldo permanece en ella, así que el mes queda corto por ese día.",
+          fr: "Le salaire de base est divisé par les jours ouvrés payés de ce mois. Un jour férié payé sort de ce compte, donc chaque jour travaillé vaut un peu plus ; un congé non payé y reste, et le mois est amputé de cette journée.",
+          de: "Das Grundgehalt wird durch die bezahlten Arbeitstage des Monats geteilt. Ein bezahlter Feiertag fällt aus dieser Zahl heraus, dadurch ist jeder gearbeitete Tag etwas mehr wert; unbezahlter Urlaub bleibt darin, der Monat fällt also um diesen Tag geringer aus.",
+          pt: "O salário base é dividido pelos dias úteis pagos desse mês. Um feriado pago sai dessa contagem, então cada dia trabalhado vale um pouco mais; a folga sem pagamento permanece nela, então o mês fica menor nesse dia.",
+          ms: "Gaji pokok dibahagi dengan hari kerja bergaji bulan itu. Cuti bergaji dikeluarkan daripada kiraan itu, jadi setiap hari anda bekerja bernilai sedikit lebih tinggi; cuti tanpa gaji kekal di dalamnya, jadi bulan itu berkurang sebanyak hari tersebut.")
     }
 
     // MARK: Settings — schedule

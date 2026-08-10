@@ -251,3 +251,31 @@ private func repository(seededWith json: String? = nil, suite: String) -> UserDe
     #expect(config.monthlySalary == 4321)
     #expect(config.dayOverrides.isEmpty)
 }
+
+// MARK: - Allowance
+
+@Test func aConfigSavedBeforeTheAllowanceExistedLoadsWithNone() {
+    // The migration that matters most: everyone's stored config predates this field, and
+    // reading it must leave every number exactly where it was.
+    let saved = """
+    {"monthlySalary":5000,"currencySymbol":"$","workStart":{"hour":8,"minute":0},
+     "workEnd":{"hour":17,"minute":0},"workdays":[2,3,4,5,6]}
+    """
+    let config = repository(seededWith: saved, suite: "test.preallowance").load()
+
+    #expect(config.monthlySalary == 5000)
+    #expect(config.monthlyAllowance == 0)
+    #expect(config.isValid)
+}
+
+@Test func theAllowanceSurvivesASaveAndLoadRoundTrip() {
+    let store = repository(suite: "test.allowance")
+    var original = SalaryConfig.default
+    original.monthlySalary = 4_000
+    original.monthlyAllowance = 1_000
+
+    store.save(original)
+    let loaded = store.load()
+    #expect(loaded == original)
+    #expect(loaded.monthlyAllowance == 1_000)
+}

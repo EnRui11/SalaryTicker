@@ -22,7 +22,8 @@ public enum EarningsCalculator {
         let total = config.paidSeconds(on: now, calendar: calendar)
         // One sweep of the month, reused for the rate, the divisor and every count below.
         let totals = monthTotals ?? config.monthTotals(for: now, calendar: calendar)
-        let dailyPay = config.dailyPay(at: now, calendar: calendar)
+        // From the sweep just taken, rather than taking a second one.
+        let dailyPay = config.dailyPay(using: totals)
         let rate = config.dailyPaidSeconds > 0 ? dailyPay / config.dailyPaidSeconds : 0
         let isWorkday = config.isWorkday(now, calendar: calendar)
 

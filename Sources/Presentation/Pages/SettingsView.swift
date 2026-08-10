@@ -78,6 +78,16 @@ struct SettingsView: View {
                         .labelsHidden()
                         .frame(width: 120)
                 }
+                LabeledContent(text.monthlyAllowance) {
+                    TextField(text.monthlyAllowance, value: $viewModel.config.monthlyAllowance,
+                              format: .number.precision(.fractionLength(0...2)))
+                        .multilineTextAlignment(.trailing)
+                        .labelsHidden()
+                        .frame(width: 120)
+                }
+                Text(text.allowanceCaption)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 if config.isValid {
                     // Both follow the month the grid is showing, so paging to September
                     // answers "what will a day be worth then" instead of repeating August.
