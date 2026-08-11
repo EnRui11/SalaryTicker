@@ -209,6 +209,7 @@ struct SettingsView: View {
     private func goalRow(_ goal: Binding<SavingsGoal>) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
+                reorderControls(for: goal.wrappedValue)
                 // labelsHidden keeps the title inside the field as a placeholder; a Form
                 // otherwise promotes it to a row label and strands the field beside it.
                 TextField(text.goalNamePlaceholder, text: goal.name)
@@ -239,6 +240,31 @@ struct SettingsView: View {
             }
         }
         .padding(.vertical, 2)
+    }
+
+    /// Moves a goal up or down the funding queue.
+    ///
+    /// Beside the drag, not instead of it. The row is almost entirely text fields, so there
+    /// is barely anywhere in it to grab, and a control that always works beats a gesture
+    /// that sometimes does.
+    private func reorderControls(for goal: SavingsGoal) -> some View {
+        let place = viewModel.position(of: goal.id)
+        return VStack(spacing: 3) {
+            Button { viewModel.moveGoalUp(goal.id) } label: {
+                Image(systemName: "chevron.up").frame(width: 14, height: 10)
+            }
+            .disabled((place?.index ?? 0) == 0)
+            .help(text.moveGoalUp)
+
+            Button { viewModel.moveGoalDown(goal.id) } label: {
+                Image(systemName: "chevron.down").frame(width: 14, height: 10)
+            }
+            .disabled((place?.index ?? 0) >= (place?.count ?? 1) - 1)
+            .help(text.moveGoalDown)
+        }
+        .buttonStyle(.borderless)
+        .font(.system(size: 10, weight: .semibold))
+        .foregroundStyle(.secondary)
     }
 
     /// `1.4 working days · Ready Thu 6 Aug, 14:20`

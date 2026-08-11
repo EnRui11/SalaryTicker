@@ -82,6 +82,8 @@ Están **limitadas** — cuatro horas por defecto, y nunca más allá de mediano
 
 Añade las cosas para las que estás ahorrando. Cada una muestra lo que cuesta en **días de trabajo** y la fecha en que el horario dice que quedará pagada. Muestra en el panel las que quieras; las demás se quedan en Ajustes.
 
+**Reordénalos con las flechas que hay junto a cada uno, o arrastrando.** Un ringgit solo se puede gastar una vez, así que los objetivos se financian de arriba abajo: uno no empieza a llenarse hasta que los de encima están pagados, y su fecha incluye esa espera. El dinero ya ganado para un objetivo se queda ahí: poner uno nuevo arriba no le quita a otro más antiguo lo que ya cobró.
+
 La fecha **no se mueve mientras trabajas.** Lo que ganas y lo que hace el reloj avanzan a la vez, así que seguir tu horario mantiene la promesa en lugar de aplazarla. Lo único que la desplaza es cambiar el horario que hay debajo: marcar un día libre, quitar un día laborable, acortar la jornada.
 
 ### La barra de menús

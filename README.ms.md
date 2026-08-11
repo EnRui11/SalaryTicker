@@ -82,6 +82,8 @@ Ia ada **had** — empat jam secara lalai, dan tidak pernah melepasi tengah mala
 
 Tambah perkara yang anda sedang kumpul duit untuknya. Setiap satu menunjukkan kosnya dalam **hari kerja** dan tarikh yang jadual anda kata ia akan siap dibayar. Tunjuk yang anda mahu dalam panel; selebihnya kekal dalam Tetapan.
 
+**Susun semula dengan anak panah di sebelah setiap satu, atau dengan menyeretnya.** Satu ringgit hanya boleh dibelanjakan sekali, jadi matlamat dibiayai dari atas senarai ke bawah: sesuatu matlamat hanya mula terisi setelah yang di atasnya selesai dibayar, dan tarikhnya mengambil kira penantian itu. Wang yang sudah masuk ke sesuatu matlamat kekal di situ — meletakkan matlamat baharu di atas tidak menarik balik apa yang sudah diterima oleh yang lebih lama.
+
 Tarikh itu **tidak bergerak selagi anda bekerja.** Pendapatan anda dan pergerakan jam maju seiring, jadi mengikut jadual anda mengotakan janji itu, bukan mengalihkannya. Satu-satunya perkara yang menggesernya ialah mengubah jadual di bawahnya — menanda cuti, membuang satu hari kerja, memendekkan waktu kerja.
 
 ### Bar menu

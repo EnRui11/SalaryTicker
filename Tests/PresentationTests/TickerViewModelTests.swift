@@ -423,3 +423,63 @@ private func rig(config: SalaryConfig = liveConfig(), start: Date) -> Rig {
     rig.viewModel.moveGoals(from: IndexSet(integer: 0), to: 99)
     #expect(rig.viewModel.config.goals.count == 2)
 }
+
+// MARK: - The arrows, which work whether or not the drag does
+
+@Test @MainActor func theArrowsWalkAGoalUpAndDownTheQueue() {
+    let goals = ["A", "B", "C"].map {
+        SavingsGoal(name: $0, amount: 100, startedAt: at(9, 0, day: 3))
+    }
+    let rig = rig(config: liveConfig(goals: goals), start: at(16, 0, day: 5))
+
+    rig.viewModel.moveGoalDown(goals[0].id)
+    #expect(rig.viewModel.config.goals.map(\.name) == ["B", "A", "C"])
+
+    rig.viewModel.moveGoalDown(goals[0].id)
+    #expect(rig.viewModel.config.goals.map(\.name) == ["B", "C", "A"])
+
+    rig.viewModel.moveGoalUp(goals[0].id)
+    #expect(rig.viewModel.config.goals.map(\.name) == ["B", "A", "C"])
+
+    rig.viewModel.moveGoalUp(goals[0].id)
+    #expect(rig.viewModel.config.goals.map(\.name) == ["A", "B", "C"])
+    #expect(rig.settings.stored.goals.map(\.name) == ["A", "B", "C"])
+}
+
+@Test @MainActor func theEndsOfTheListAreDeadEndsRatherThanWrapArounds() {
+    let goals = ["A", "B"].map {
+        SavingsGoal(name: $0, amount: 100, startedAt: at(9, 0, day: 3))
+    }
+    let rig = rig(config: liveConfig(goals: goals), start: at(16, 0, day: 5))
+
+    rig.viewModel.moveGoalUp(goals[0].id)          // already top
+    rig.viewModel.moveGoalDown(goals[1].id)        // already bottom
+    #expect(rig.viewModel.config.goals.map(\.name) == ["A", "B"])
+    #expect(rig.settings.saveCount == 0)           // nothing happened, nothing written
+}
+
+@Test @MainActor func movingAGoalMovesItsMoneyToo() {
+    // The arrows are the same act as the drag, so they must reprice the queue identically.
+    let first = SavingsGoal(name: "First", amount: 2_000, startedAt: at(9, 0, day: 3))
+    let second = SavingsGoal(name: "Second", amount: 2_000, startedAt: at(9, 0, day: 3))
+    let rig = rig(config: liveConfig(goals: [first, second]), start: at(16, 0, day: 5))
+    rig.viewModel.refresh()
+
+    let topShare = rig.viewModel.projection(for: first).earned
+    #expect(topShare > rig.viewModel.projection(for: second).earned)
+
+    rig.viewModel.moveGoalUp(second.id)
+    #expect(abs(rig.viewModel.projection(for: second).earned - topShare) < 1e-9)
+}
+
+@Test @MainActor func theQueuePositionIsReportedForTheControlsThatUseIt() {
+    let goals = ["A", "B", "C"].map {
+        SavingsGoal(name: $0, amount: 100, startedAt: at(9, 0, day: 3))
+    }
+    let rig = rig(config: liveConfig(goals: goals), start: at(16, 0, day: 5))
+
+    #expect(rig.viewModel.position(of: goals[0].id)?.index == 0)
+    #expect(rig.viewModel.position(of: goals[2].id)?.index == 2)
+    #expect(rig.viewModel.position(of: goals[2].id)?.count == 3)
+    #expect(rig.viewModel.position(of: SavingsGoal(name: "ghost", amount: 1).id) == nil)
+}

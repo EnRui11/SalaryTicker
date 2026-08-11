@@ -82,6 +82,8 @@ Die Überstunden sind **gedeckelt** — standardmäßig vier Stunden, und nie ü
 
 Trag ein, worauf du sparst. Jedes Ziel zeigt, was es in **Arbeitstagen** kostet, und das Datum, an dem es laut Zeitplan bezahlt ist. Was du im Panel sehen willst, heftest du dort an; der Rest bleibt in den Einstellungen.
 
+**Sortiere sie mit den Pfeilen neben jedem Eintrag um, oder per Ziehen.** Ein Ringgit lässt sich nur einmal ausgeben, also werden Ziele von oben nach unten bedient: ein Ziel beginnt sich erst zu füllen, wenn die darüber bezahlt sind, und sein Datum enthält diese Wartezeit. Geld, das bereits in ein Ziel geflossen ist, bleibt dort — ein neues Ziel ganz oben holt sich nichts von einem älteren zurück, das schon bedient wurde.
+
 Das Datum **bleibt stehen, solange du arbeitest.** Was du verdienst und was die Uhr tut, rücken gemeinsam vor; deinem Zeitplan zu folgen hält das Versprechen also, statt es zu verschieben. Verschieben lässt es sich nur, indem du den Zeitplan darunter änderst — freie Tage markieren, einen Arbeitstag streichen, die Arbeitszeit kürzen.
 
 ### Die Menüleiste

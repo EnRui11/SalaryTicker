@@ -82,6 +82,8 @@ Elles sont **plafonnées** — quatre heures par défaut, et jamais au-delà de 
 
 Ajoutez ce pour quoi vous économisez. Chacun indique ce qu'il coûte en **jours de travail** et la date à laquelle vos horaires disent qu'il sera payé. Affichez dans le panneau ceux que vous voulez y voir ; les autres restent dans les Réglages.
 
+**Réordonnez-les avec les flèches situées à côté de chacun, ou par glisser-déposer.** Un ringgit ne peut être dépensé qu'une fois : les objectifs sont donc financés du haut de la liste vers le bas. Un objectif ne commence à se remplir qu'une fois ceux du dessus payés, et sa date intègre cette attente. L'argent déjà acquis à un objectif y reste — placer un nouvel objectif en tête ne reprend rien à un plus ancien déjà servi.
+
 La date **ne bouge pas tant que vous travaillez.** Ce que vous gagnez et ce que fait l'horloge avancent ensemble : suivre vos horaires tient la promesse au lieu de la repousser. La seule chose qui la décale, c'est de changer les horaires en dessous — marquer un congé, retirer un jour ouvré, raccourcir la journée.
 
 ### La barre des menus

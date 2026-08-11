@@ -63,6 +63,14 @@ def shape(path: pathlib.Path) -> dict:
         "levels": "".join(str(len(m)) for m in re.findall(r"^(#{1,6}) ", body, re.M)),
         "fences": body.count("```"),
         "table_rows": len(re.findall(r"^\|", body, re.M)),
+        # Paragraph count catches the drift the rest of this misses: a paragraph added to
+        # the English and not to the translations leaves every heading and table intact.
+        "paragraphs": len([
+            l for l in body.split("\n")
+            # The whitespace after the bullet matters: without it a paragraph opening with
+            # **bold** is counted as a list item, and inconsistently between languages.
+            if l.strip() and not re.match(r"^\s*(#|\||<|```|([-*+]|\d+[.)])\s)", l)
+        ]),
         "images": sorted(re.findall(r'src="([^"]+)"', body)),
         "links": sorted(set(re.findall(r"\]\(([^)]+)\)", body))),
     }
@@ -78,7 +86,7 @@ if __name__ == "__main__":
         print()
 
     reference = shape(ROOT / "README.md")
-    print(f"  {'file':22} {'head':>5} {'fence':>6} {'rows':>5}  structure")
+    print(f"  {'file':22} {'head':>5} {'fence':>6} {'rows':>5} {'para':>5}  structure")
     ok = True
     for fname, _ in LANGS:
         p = ROOT / fname
@@ -94,6 +102,8 @@ if __name__ == "__main__":
             problems.append("code fences differ")
         if s["table_rows"] != reference["table_rows"]:
             problems.append("table rows differ")
+        if s["paragraphs"] != reference["paragraphs"]:
+            problems.append(f"paragraphs differ: {s['paragraphs']} vs {reference['paragraphs']}")
         if s["images"] != reference["images"]:
             problems.append(f"images differ: {s['images']}")
         # Links may legitimately differ only by the language-bar targets, which are stripped.
@@ -102,5 +112,6 @@ if __name__ == "__main__":
         flag = "ok" if not problems else "; ".join(problems)
         if problems:
             ok = False
-        print(f"  {fname:22} {s['headings']:>5} {s['fences']:>6} {s['table_rows']:>5}  {flag}")
+        print(f"  {fname:22} {s['headings']:>5} {s['fences']:>6} {s['table_rows']:>5} "
+              f"{s['paragraphs']:>5}  {flag}")
     sys.exit(0 if ok else 1)

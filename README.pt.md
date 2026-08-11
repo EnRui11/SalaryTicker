@@ -82,6 +82,8 @@ Ela tem um **limite** — quatro horas por padrão, e nunca passa da meia-noite 
 
 Adicione as coisas que você está juntando dinheiro para comprar. Cada uma mostra quanto custa em **dias de trabalho** e a data em que o horário diz que ela estará paga. Ative Mostrar no painel nas que você quiser; as outras ficam em Ajustes.
 
+**Reordene-os com as setas ao lado de cada um, ou arrastando.** Um ringgit só pode ser gasto uma vez, então os objetivos são financiados de cima para baixo: um objetivo só começa a encher depois de pagos os que estão acima, e a sua data inclui essa espera. O dinheiro já ganho para um objetivo fica lá — pôr um novo no topo não retira o que um mais antigo já recebeu.
+
 A data **não se move enquanto você trabalha.** O que você ganha e o que o relógio faz avançam juntos, então seguir o seu horário cumpre a promessa em vez de adiá-la. A única coisa que a desloca é mudar o horário por baixo — marcar uma folga, tirar um dia útil, encurtar a jornada.
 
 ### A barra de menus

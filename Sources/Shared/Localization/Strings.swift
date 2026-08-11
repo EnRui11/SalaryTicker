@@ -504,17 +504,27 @@ public struct Strings: Sendable {
           ms: "Lebih lima tahun lagi")
     }
 
+    public var moveGoalUp: String {
+        t(en: "Move up", zh: "上移", ja: "上へ", ko: "위로",
+          es: "Subir", fr: "Monter", de: "Nach oben", pt: "Mover para cima", ms: "Naik")
+    }
+
+    public var moveGoalDown: String {
+        t(en: "Move down", zh: "下移", ja: "下へ", ko: "아래로",
+          es: "Bajar", fr: "Descendre", de: "Nach unten", pt: "Mover para baixo", ms: "Turun")
+    }
+
     /// The one rule a user has to know now that goals compete for the same money.
     public var goalsPriorityCaption: String {
-        t(en: "Drag to reorder. Money fills the list from the top: a goal only starts filling once the ones above it are paid for.",
-          zh: "拖动可以调整顺序。钱从列表顶部往下填：上面的目标付清之后，下面的才开始攒。",
-          ja: "ドラッグして並べ替えられます。お金はリストの上から順に入ります。上の目標が払い終わるまで、下の目標は貯まり始めません。",
-          ko: "끌어서 순서를 바꿀 수 있습니다. 돈은 목록 위에서부터 채워지며, 위의 목표를 다 채운 뒤에야 아래 목표가 모이기 시작합니다.",
-          es: "Arrastra para reordenar. El dinero llena la lista desde arriba: un objetivo no empieza a llenarse hasta que los de encima están pagados.",
-          fr: "Glissez pour réordonner. L'argent remplit la liste par le haut : un objectif ne commence à se remplir qu'une fois ceux du dessus payés.",
-          de: "Zum Umsortieren ziehen. Das Geld füllt die Liste von oben: ein Ziel beginnt sich erst zu füllen, wenn die darüber bezahlt sind.",
-          pt: "Arraste para reordenar. O dinheiro preenche a lista de cima para baixo: um objetivo só começa a encher depois de pagos os que estão acima.",
-          ms: "Seret untuk susun semula. Wang mengisi senarai dari atas: sesuatu matlamat hanya mula terisi setelah yang di atasnya selesai dibayar.")
+        t(en: "Reorder with the arrows, or by dragging. Money fills the list from the top: a goal only starts filling once the ones above it are paid for.",
+          zh: "用箭头或拖动调整顺序。钱从列表顶部往下填：上面的目标付清之后，下面的才开始攒。",
+          ja: "矢印またはドラッグで並べ替えられます。お金はリストの上から順に入ります。上の目標が払い終わるまで、下の目標は貯まり始めません。",
+          ko: "화살표나 끌기로 순서를 바꿀 수 있습니다. 돈은 목록 위에서부터 채워지며, 위의 목표를 다 채운 뒤에야 아래 목표가 모이기 시작합니다.",
+          es: "Reordena con las flechas o arrastrando. El dinero llena la lista desde arriba: un objetivo no empieza a llenarse hasta que los de encima están pagados.",
+          fr: "Réordonnez avec les flèches ou par glisser-déposer. L'argent remplit la liste par le haut : un objectif ne commence à se remplir qu'une fois ceux du dessus payés.",
+          de: "Mit den Pfeilen oder per Ziehen umsortieren. Das Geld füllt die Liste von oben: ein Ziel beginnt sich erst zu füllen, wenn die darüber bezahlt sind.",
+          pt: "Reordene com as setas ou arrastando. O dinheiro preenche a lista de cima para baixo: um objetivo só começa a encher depois de pagos os que estão acima.",
+          ms: "Susun semula dengan anak panah atau dengan menyeret. Wang mengisi senarai dari atas: sesuatu matlamat hanya mula terisi setelah yang di atasnya selesai dibayar.")
     }
 
     public var goalsCaption: String {

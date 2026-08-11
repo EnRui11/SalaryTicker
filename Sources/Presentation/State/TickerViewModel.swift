@@ -225,6 +225,30 @@ public final class TickerViewModel {
         configChanged()
     }
 
+    /// One step up the list, and one step down.
+    ///
+    /// Dragging is the nice way to do this, but a goal row is two text fields, a checkbox
+    /// and a delete button — there is almost no dead space in it to press on, and whether
+    /// the drag lands at all depends on the platform. These always work.
+    public func moveGoalUp(_ id: SavingsGoal.ID) {
+        guard let index = config.goals.firstIndex(where: { $0.id == id }), index > 0 else { return }
+        moveGoals(from: IndexSet(integer: index), to: index - 1)
+    }
+
+    public func moveGoalDown(_ id: SavingsGoal.ID) {
+        guard let index = config.goals.firstIndex(where: { $0.id == id }),
+              index < config.goals.count - 1 else { return }
+        // Two, not one: `moveGoals` reads its destination against the list as it was before
+        // anything was lifted out of it, so one step down is an insertion two places along.
+        moveGoals(from: IndexSet(integer: index), to: index + 2)
+    }
+
+    /// Where a goal sits in the funding queue, for the controls that move it.
+    public func position(of id: SavingsGoal.ID) -> (index: Int, count: Int)? {
+        guard let index = config.goals.firstIndex(where: { $0.id == id }) else { return nil }
+        return (index, config.goals.count)
+    }
+
     /// Cycles a day between working, paid leave and unpaid leave. Works on any month the
     /// grid is showing, not just the current one.
     public func cycleDayOverride(_ key: DayKey) {
