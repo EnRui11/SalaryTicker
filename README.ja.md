@@ -141,8 +141,7 @@ swift test           # 210 tests
 ./Packaging/build_app.sh    # assemble the .app without installing
 ```
 
-フィーチャー優先のクリーンアーキテクチャで、レイヤーごとに SwiftPM ターゲットを1つ。依存の向きは規律ではなくコンパイラが強制する。設計上の判断、金額モデルの不変条件、そしてそれらを形づくったバグについては
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) に書いてある。
+フィーチャー優先のクリーンアーキテクチャで、レイヤーごとに SwiftPM ターゲットを1つ。依存の向きは規律ではなくコンパイラが強制する。設計上の判断、金額モデルの不変条件、そしてそれらを形づくったバグについては [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) に書いてある。
 
 ## ライセンス
 

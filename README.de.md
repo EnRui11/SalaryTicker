@@ -8,21 +8,17 @@ Eine macOS-Menüleisten-App, die im Sekundentakt zeigt, was du heute bisher verd
 
 <img src="docs/panel.png" width="360" alt="Das Panel: der heutige Verdienst, die Sätze dahinter, der Monat bisher und zwei Sparziele mit dem Datum, an dem sie jeweils bezahlt sein werden.">
 
-Sie sitzt als Zahl und kleiner Fortschrittsring in der Menüleiste. Ein Klick zeigt die
-Details des Tages, den bisherigen Monat und wie nah du dem bist, worauf du gerade sparst.
+Sie sitzt als Zahl und kleiner Fortschrittsring in der Menüleiste. Ein Klick zeigt die Details des Tages, den bisherigen Monat und wie nah du dem bist, worauf du gerade sparst.
 
-- **Tickt im Sekundentakt** nach deinem echten Zeitplan — Arbeitszeit, unbezahlte
-  Mittagspause, Arbeitstage.
-- **Kennt freie Tage.** Feiertage, bezahlter Urlaub und unbezahlter Urlaub landen an
-  verschiedenen Stellen, und unbezahlter Urlaub geht nur vom Grundgehalt ab, nicht von den Zulagen.
+- **Tickt im Sekundentakt** nach deinem echten Zeitplan — Arbeitszeit, unbezahlte Mittagspause, Arbeitstage.
+- **Kennt freie Tage.** Feiertage, bezahlter Urlaub und unbezahlter Urlaub landen an verschiedenen Stellen, und unbezahlter Urlaub geht nur vom Grundgehalt ab, nicht von den Zulagen.
 - **Rechnet Preise in Arbeit um.** Ein Ziel wird in Arbeitstagen angezeigt und mit dem Datum, an dem es laut Zeitplan bezahlt ist — nicht nur in Geld.
 - **Neun Sprachen**, jedes Währungssymbol, jede IANA-Zeitzone.
 - **Kein Konto, kein Netzwerk, keine Telemetrie.** Alles wird auf deinem Mac aus den Einstellungen berechnet, die du eingetippt hast.
 
 ## Installation
 
-Erfordert **macOS 14 oder neuer** und eine Swift-6-Toolchain. Gebaut und getestet mit Swift
-6.3; frühere Swift-6-Versionen sind ungetestet.
+Erfordert **macOS 14 oder neuer** und eine Swift-6-Toolchain. Gebaut und getestet mit Swift 6.3; frühere Swift-6-Versionen sind ungetestet.
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
@@ -30,14 +26,11 @@ cd SalaryTicker
 ./Packaging/build_app.sh install
 ```
 
-Das baut ein Release-Binary, erzeugt das App-Symbol aus den Quellen, setzt
-`SalaryTicker.app` zusammen, signiert sie ad hoc, kopiert sie nach `/Applications` und
-startet sie. Lässt du das Argument `install` weg, wird nur ins Arbeitsverzeichnis gebaut, ohne zu installieren.
+Das baut ein Release-Binary, erzeugt das App-Symbol aus den Quellen, setzt `SalaryTicker.app` zusammen, signiert sie ad hoc, kopiert sie nach `/Applications` und startet sie. Lässt du das Argument `install` weg, wird nur ins Arbeitsverzeichnis gebaut, ohne zu installieren.
 
 Es gibt nichts aus der Quarantäne zu holen: Du hast das Binary selbst kompiliert, es trägt also nie das Download-Flag, nach dem Gatekeeper sucht. Die Signatur ist ad hoc, was für eine lokal gebaute App genügt und dem Anmeldeobjekt eine stabile Identität gibt.
 
-Zum Aktualisieren pullst du und führst denselben Befehl aus — er ersetzt die installierte
-Kopie und startet sie neu. Deine Einstellungen liegen außerhalb des Bundles und bleiben unangetastet.
+Zum Aktualisieren pullst du und führst denselben Befehl aus — er ersetzt die installierte Kopie und startet sie neu. Deine Einstellungen liegen außerhalb des Bundles und bleiben unangetastet.
 
 Zum Deinstallieren: im Panel beenden, `/Applications/SalaryTicker.app` löschen, und wenn auch die Einstellungen weg sollen, `defaults delete com.steve.salaryticker`.
 
@@ -60,20 +53,15 @@ Mehr braucht es zum Start nicht. Alles Weitere ist optional.
 Zwei Felder, weil eine Gehaltsabrechnung mindestens zwei Zeilen hat und freie Tage die beiden unterschiedlich behandeln:
 
 - **Grundgehalt** ist der Teil, von dem unbezahlter Urlaub abgezogen wird.
-- **Zulagen** sind ein fester Monatsbetrag — Fahrtkosten, Telefon —, der voll gezahlt wird,
-  ob du unbezahlten Urlaub genommen hast oder nicht.
+- **Zulagen** sind ein fester Monatsbetrag — Fahrtkosten, Telefon —, der voll gezahlt wird, ob du unbezahlten Urlaub genommen hast oder nicht.
 
-Hast du keine Zulagen, lass das Feld auf null, dann ändert sich nichts. Hast du welche, ist
-die saubere Trennung genau das, was verhindert, dass ein Tag unbezahlter Urlaub mehr kostet, als er wirklich kostet.
+Hast du keine Zulagen, lass das Feld auf null, dann ändert sich nichts. Hast du welche, ist die saubere Trennung genau das, was verhindert, dass ein Tag unbezahlter Urlaub mehr kostet, als er wirklich kostet.
 
 ### Arbeitstage, Feiertage und Urlaub
 
-Wähle deine Wochentage und markiere einzelne davon als **halben Tag** (etwa einen
-Samstagvormittag) — er zählt überall als halb.
+Wähle deine Wochentage und markiere einzelne davon als **halben Tag** (etwa einen Samstagvormittag) — er zählt überall als halb.
 
-Ein Klick auf ein Datum im Monatsraster schaltet weiter: **Arbeitstag → bezahlt frei →
-unbezahlt → Arbeitstag**. Die Pfeile links und rechts vom Titel blättern durch die Monate,
-und der Titel selbst führt zurück zu heute; so lassen sich die Feiertage des nächsten Jahres eintragen, bevor sie da sind.
+Ein Klick auf ein Datum im Monatsraster schaltet weiter: **Arbeitstag → bezahlt frei → unbezahlt → Arbeitstag**. Die Pfeile links und rechts vom Titel blättern durch die Monate, und der Titel selbst führt zurück zu heute; so lassen sich die Feiertage des nächsten Jahres eintragen, bevor sie da sind.
 
 Die beiden Arten freier Tage landen an verschiedenen Stellen, und genau dieser Unterschied ist der Punkt:
 
@@ -94,8 +82,7 @@ Die Überstunden sind **gedeckelt** — standardmäßig vier Stunden, und nie ü
 
 Trag ein, worauf du sparst. Jedes Ziel zeigt, was es in **Arbeitstagen** kostet, und das Datum, an dem es laut Zeitplan bezahlt ist. Was du im Panel sehen willst, heftest du dort an; der Rest bleibt in den Einstellungen.
 
-Das Datum **bleibt stehen, solange du arbeitest.** Was du verdienst und was die Uhr tut,
-rücken gemeinsam vor; deinem Zeitplan zu folgen hält das Versprechen also, statt es zu verschieben. Verschieben lässt es sich nur, indem du den Zeitplan darunter änderst — freie Tage markieren, einen Arbeitstag streichen, die Arbeitszeit kürzen.
+Das Datum **bleibt stehen, solange du arbeitest.** Was du verdienst und was die Uhr tut, rücken gemeinsam vor; deinem Zeitplan zu folgen hält das Versprechen also, statt es zu verschieben. Verschieben lässt es sich nur, indem du den Zeitplan darunter änderst — freie Tage markieren, einen Arbeitstag streichen, die Arbeitszeit kürzen.
 
 ### Die Menüleiste
 
@@ -106,8 +93,7 @@ rücken gemeinsam vor; deinem Zeitplan zu folgen hält das Versprechen also, sta
 | Außerhalb der Arbeitszeit nur Symbol | Klappt das Element ein, wenn sich die Zahl nicht bewegt — abends, am Wochenende, vor dem Arbeitsbeginn |
 | **Betrag ausblenden**               | Nimmt das Geld aus der Menüleiste, bis du es zurückholst, ganz gleich, was die Uhr sagt          |
 
-**Betrag ausblenden** ist auch der erste Eintrag im Panel, einen Klick von der Menüleiste
-entfernt, für den Moment, in dem ein Anruf beginnt oder jemand über deine Schulter mitliest. Es verbirgt nie *alles* — der Ring bleibt, sonst gäbe es nichts mehr anzuklicken, um die Zahl zurückzuholen.
+**Betrag ausblenden** ist auch der erste Eintrag im Panel, einen Klick von der Menüleiste entfernt, für den Moment, in dem ein Anruf beginnt oder jemand über deine Schulter mitliest. Es verbirgt nie *alles* — der Ring bleibt, sonst gäbe es nichts mehr anzuklicken, um die Zahl zurückzuholen.
 
 ### Beim Anmelden starten
 
@@ -129,25 +115,20 @@ Die bezahlten Stunden pro Tag ergeben sich aus Arbeitsbeginn, Arbeitsende und de
 
 ### Sie kann nicht driften
 
-Jede Aktualisierung rechnet aus `(settings, now)` neu und **akkumuliert nichts**. Deckel
-zuklappen, Ruhezustand, beenden und neu starten, die Systemuhr verstellen, über Zeitzonen hinwegfliegen — nichts davon kann die Zahl falsch machen, weil es keine laufende Summe gibt, die falsch werden könnte.
+Jede Aktualisierung rechnet aus `(settings, now)` neu und **akkumuliert nichts**. Deckel zuklappen, Ruhezustand, beenden und neu starten, die Systemuhr verstellen, über Zeitzonen hinwegfliegen — nichts davon kann die Zahl falsch machen, weil es keine laufende Summe gibt, die falsch werden könnte.
 
-Der Timer sagt nur „Zeit zum Neuzeichnen“. Er zählt nicht, und er fällt in ein
-20-Sekunden-Nickerchen, sobald die Zahl eingefroren ist, also an den meisten Abenden und an jedem Wochenende.
+Der Timer sagt nur „Zeit zum Neuzeichnen“. Er zählt nicht, und er fällt in ein 20-Sekunden-Nickerchen, sobald die Zahl eingefroren ist, also an den meisten Abenden und an jedem Wochenende.
 
 ### Es gibt bewusst keine Pausentaste
 
 Die Zählung läuft an beiden Enden des bezahlten Fensters in die Sättigung: ein Augenblick vor dem Arbeitstag ist null wert, einer danach einen ganzen Tag. Die Zahl **hält deshalb nach dem Arbeitsende von selbst an und setzt sich um Mitternacht von selbst zurück** — kein Timer, der zu stoppen wäre, kein Zustand, der zurückgesetzt werden müsste.
 
-Eine manuelle Pause gab es kurzzeitig. Sie war der einzige akkumulierte Zustand der App und
-die Quelle ihrer beiden schlimmsten Bugs: eine über Nacht laufende Pause zog mehr als einen ganzen Arbeitstag ab und nullte den nächsten, und eine nach dem Arbeitsende gestartete Pause ließ die bereits feststehende Tagessumme *rückwärts* ticken. Die Funktion zu löschen löschte die ganze Fehlerklasse.
+Eine manuelle Pause gab es kurzzeitig. Sie war der einzige akkumulierte Zustand der App und die Quelle ihrer beiden schlimmsten Bugs: eine über Nacht laufende Pause zog mehr als einen ganzen Arbeitstag ab und nullte den nächsten, und eine nach dem Arbeitsende gestartete Pause ließ die bereits feststehende Tagessumme *rückwärts* ticken. Die Funktion zu löschen löschte die ganze Fehlerklasse.
 
 ## Bekannte Grenzen
 
-- **Keine Nachtschichten.** Das Arbeitsende muss nach dem Arbeitsbeginn liegen; sonst sagt
-  die App „Einrichtung unvollständig“, statt eine falsche Zahl zu zeigen.
-- **Kein Bonus.** Abgebildet werden nur feste monatliche Zulagen. Eine gelegentliche Zahlung
-  oder ein Jahresbonus müsste auf einen Sekundenwert umgelegt werden, um hier aufzutauchen, und das schmeichelt der Zahl, statt sie zu beschreiben.
+- **Keine Nachtschichten.** Das Arbeitsende muss nach dem Arbeitsbeginn liegen; sonst sagt die App „Einrichtung unvollständig“, statt eine falsche Zahl zu zeigen.
+- **Kein Bonus.** Abgebildet werden nur feste monatliche Zulagen. Eine gelegentliche Zahlung oder ein Jahresbonus müsste auf einen Sekundenwert umgelegt werden, um hier aufzutauchen, und das schmeichelt der Zahl, statt sie zu beschreiben.
 - **Keine Steuer, kein EPF, kein SOCSO.** Alle Beträge sind brutto.
 - **Keine Historie.** Der Wert für **Diesen Monat** wird aus dem Zeitplan dieses Monats abgeleitet, nicht aus einer Aufzeichnung dessen, was tatsächlich gearbeitet wurde. Änderst du Gehalt oder Arbeitszeit, werden die bereits vergangenen Tage des laufenden Monats neu bepreist.
 - **Nur ein Zeitplan.** Ein Muster, das nicht wöchentlich ist — jeder zweite Samstag, ein rotierender Schichtplan —, lässt sich nur ausdrücken, indem du die Ausnahmen von Hand markierst.
@@ -160,8 +141,7 @@ swift test           # 210 tests
 ./Packaging/build_app.sh    # assemble the .app without installing
 ```
 
-Feature-first Clean Architecture, ein SwiftPM-Target pro Schicht, damit die Abhängigkeitsrichtung vom Compiler erzwungen wird und nicht von Disziplin. Die Entwurfsentscheidungen, die Invarianten des Geldmodells und die Bugs, die sie geprägt haben, stehen in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Feature-first Clean Architecture, ein SwiftPM-Target pro Schicht, damit die Abhängigkeitsrichtung vom Compiler erzwungen wird und nicht von Disziplin. Die Entwurfsentscheidungen, die Invarianten des Geldmodells und die Bugs, die sie geprägt haben, stehen in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Lizenz
 
