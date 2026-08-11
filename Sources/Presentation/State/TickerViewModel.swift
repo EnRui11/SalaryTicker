@@ -94,56 +94,34 @@ public final class TickerViewModel {
     private func refreshGoals(at now: Date) {
         let calendar = config.calendar()
         let today = calendar.startOfDay(for: now)
-        // Every valid goal, not only the pinned ones. Settings lists them all and asks each
-        // for a projection on every redraw — which is once a second, since `earnings`
-        // changes every tick and rebuilds the form — and an uncached projection for an old
-        // goal costs tens of milliseconds.
+        // In the order the user put them in: that order *is* the funding priority, so it
+        // must not be filtered or sorted on the way through.
         let valid = config.goals.filter(\.isValid)
 
         if goalCacheDay != today || goalCacheConfig != config {
-            goalCache = Dictionary(uniqueKeysWithValues: valid.map { goal in
-                let banked = GoalCalculator.earnedBeforeToday(
-                    for: goal, config: config, now: now, calendar: calendar
-                )
-                let projection = GoalCalculator.projection(
-                    for: goal, config: config, now: now,
-                    earnedBeforeToday: banked, calendar: calendar
-                )
-                return (goal.id, (banked, projection))
-            })
+            // The expensive half — one calendar walk per distinct start instant, not per
+            // goal, and only once a day. Goals created in the same click share a walk.
+            bankedSinceStart = Dictionary(
+                uniqueKeysWithValues: Set(valid.map(\.startedAt)).map { start in
+                    (start, GoalCalculator.earnedBeforeToday(
+                        since: start, config: config, now: now, calendar: calendar
+                    ))
+                }
+            )
             goalCacheDay = today
             goalCacheConfig = config
         }
 
-        pinnedGoals = valid
-            .filter(\.isPinned)
-            .compactMap { goal in
-                liveProjection(for: goal, at: now, calendar: calendar).map { (goal, $0) }
-            }
-    }
-
-    /// A cached projection with today's running total patched in.
-    ///
-    /// Everything expensive in a projection — the walk back over every day since saving
-    /// started, and the walk forward to the day it lands on — is fixed for the whole day.
-    /// Only the running total moves, and that is cheap.
-    private func liveProjection(
-        for goal: SavingsGoal, at now: Date, calendar: Calendar
-    ) -> GoalProjection? {
-        guard let cached = goalCache[goal.id] else { return nil }
-        let earned = min(
-            cached.banked + GoalCalculator.earnedToday(
-                for: goal, config: config, now: now, calendar: calendar
-            ),
-            goal.amount
+        // One allocation for the whole list. Goals compete for the same money, so none of
+        // them can be projected alone without lying about the others.
+        let projected = GoalCalculator.projections(
+            for: valid, config: config, now: now,
+            bankedSinceStart: bankedSinceStart, calendar: calendar
         )
-        return GoalProjection(
-            workSeconds: cached.projection.workSeconds,
-            workdays: cached.projection.workdays,
-            earned: earned,
-            progress: goal.amount > 0 ? min(max(earned / goal.amount, 0), 1) : 0,
-            readyAt: cached.projection.readyAt
-        )
+        goalProjections = Dictionary(uniqueKeysWithValues: zip(valid.map(\.id), projected))
+        pinnedGoals = zip(valid, projected)
+            .filter { $0.0.isPinned }
+            .map { (goal: $0.0, projection: $0.1) }
     }
 
     /// Rebuilds the grid only when the month it draws could actually have changed.
@@ -195,28 +173,46 @@ public final class TickerViewModel {
     /// Projections for the goals pinned to the panel, refreshed with the tick.
     public private(set) var pinnedGoals: [(goal: SavingsGoal, projection: GoalProjection)] = []
 
-    // Only two things in a projection are expensive, and neither moves within a day: the
-    // walk back over every day since saving started, and the walk forward to the date it
-    // lands on. Left uncached they cost milliseconds *per goal per second*, and they grow
-    // with the goal's age — an old goal would quietly heat the machine up over months.
-    private var goalCache: [SavingsGoal.ID: (banked: Double, projection: GoalProjection)] = [:]
+    // The expensive part of a projection is the walk back over every day since saving
+    // started, and it does not move within a day. Left on the tick it costs milliseconds
+    // per goal per second and grows with the goal's age, so an old goal would quietly heat
+    // the machine up over months. Keyed on the start instant rather than the goal, because
+    // the instant is what the walk actually depends on.
+    private var bankedSinceStart: [Date: Double] = [:]
+    private var goalProjections: [SavingsGoal.ID: GoalProjection] = [:]
     private var goalCacheConfig: SalaryConfig?
     private var goalCacheDay: Date?
 
     /// The projection Settings shows beside each goal.
     ///
-    /// Served from the same day-keyed cache the panel uses, and computed from scratch only
-    /// when the cache cannot answer — an edit the tick has not caught up with, or a goal
-    /// that has only just become valid. The cached answer is used only when it was built
-    /// for the configuration currently on screen, so an edit never sees a stale figure.
+    /// Read out of the allocation the tick already made. If the configuration has moved on
+    /// since — an edit SwiftUI rendered before `configChanged` ran — the whole list is
+    /// re-allocated once, not once per row.
     public func projection(for goal: SavingsGoal) -> GoalProjection {
-        let now = clock.now
-        let calendar = config.calendar()
-        if goalCacheConfig == config,
-           let cached = liveProjection(for: goal, at: now, calendar: calendar) {
-            return cached
-        }
-        return GoalCalculator.projection(for: goal, config: config, now: now, calendar: calendar)
+        if goalCacheConfig != config { refreshGoals(at: clock.now) }
+        return goalProjections[goal.id] ?? .unreachable
+    }
+
+    /// Reorders the goals, which is the same act as reprioritising them: money fills the
+    /// top of the list first, and a goal only starts filling once those above it are full.
+    ///
+    /// Written out rather than calling `move(fromOffsets:toOffset:)`, which SwiftUI adds:
+    /// this target has no business importing a UI framework to reorder an array.
+    public func moveGoals(from source: IndexSet, to destination: Int) {
+        let indices = source.sorted().filter { config.goals.indices.contains($0) }
+        guard !indices.isEmpty else { return }
+
+        let moving = indices.map { config.goals[$0] }
+        var reordered = config.goals
+        for index in indices.reversed() { reordered.remove(at: index) }
+
+        // `destination` indexes the list as it looked *before* anything was taken out of it.
+        let taken = indices.filter { $0 < destination }.count
+        let insertAt = min(max(destination - taken, 0), reordered.count)
+        reordered.insert(contentsOf: moving, at: insertAt)
+
+        config.goals = reordered
+        configChanged()
     }
 
     public func addGoal() {

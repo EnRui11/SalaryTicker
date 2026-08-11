@@ -82,6 +82,8 @@ It is **capped** — four hours by default, and never past midnight — because 
 
 Add the things you are saving for. Each one shows what it costs in **working days** and the date the schedule says it will be paid for. Pin the ones you want in the panel; the rest stay in Settings.
 
+**Drag to reorder them.** A ringgit can only be spent once, so goals are funded from the top of the list down: a goal only starts filling once the ones above it are paid for, and its date includes the wait. Money already earned into a goal stays there — putting a new goal at the top does not claw back what an older one was paid with.
+
 The date **holds still while you work.** What you earn and what the clock does advance together, so following your schedule keeps the promise rather than moving it. The only thing that shifts it is changing the schedule underneath — marking leave, dropping a workday, shortening the hours.
 
 ### The menu bar

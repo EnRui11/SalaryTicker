@@ -181,8 +181,11 @@ struct SettingsView: View {
         .formStyle(.grouped)
     }
 
+    // A List rather than a Form, unlike every other tab. `.onMove` is only honoured inside
+    // a List; in a Form it is accepted and silently does nothing, which would leave the
+    // reordering looking implemented while being unreachable.
     private var goalsTab: some View {
-        Form {
+        List {
             Section(text.sectionGoals) {
                 if config.goals.isEmpty {
                     Text(text.noGoalsYet)
@@ -192,13 +195,15 @@ struct SettingsView: View {
                 ForEach($viewModel.config.goals) { $goal in
                     goalRow($goal)
                 }
+                .onMove { source, destination in
+                    viewModel.moveGoals(from: source, to: destination)
+                }
                 Button(text.addGoal, systemImage: "plus") { viewModel.addGoal() }
-                Text(text.goalsCaption)
+                Text("\(text.goalsPriorityCaption)\n\n\(text.goalsCaption)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
     }
 
     private func goalRow(_ goal: Binding<SavingsGoal>) -> some View {

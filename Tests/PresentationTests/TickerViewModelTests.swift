@@ -308,14 +308,17 @@ private func rig(config: SalaryConfig = liveConfig(), start: Date) -> Rig {
     let rig = rig(config: liveConfig(goals: goals), start: at(16, 0, day: 5))
     rig.viewModel.refresh()
 
-    for goal in goals {
+    // The reference is the whole-list allocation, not a per-goal one: goals are funded in
+    // order out of the same money, so what a goal would be worth on its own is exactly the
+    // answer this app used to give and no longer should.
+    let truth = GoalCalculator.projections(
+        for: goals, config: liveConfig(goals: goals), now: at(16, 0, day: 5), calendar: testCalendar()
+    )
+    for (goal, expected) in zip(goals, truth) {
         let shown = rig.viewModel.projection(for: goal)
-        let truth = GoalCalculator.projection(
-            for: goal, config: liveConfig(goals: goals), now: at(16, 0, day: 5), calendar: testCalendar()
-        )
-        #expect(abs(shown.earned - truth.earned) < 1e-9, "\(goal.name)")
-        #expect(abs(shown.workdays - truth.workdays) < 1e-9, "\(goal.name)")
-        #expect(shown.readyAt == truth.readyAt, "\(goal.name)")
+        #expect(abs(shown.earned - expected.earned) < 1e-9, "\(goal.name)")
+        #expect(abs(shown.workdays - expected.workdays) < 1e-9, "\(goal.name)")
+        #expect(shown.readyAt == expected.readyAt, "\(goal.name)")
     }
 }
 
@@ -368,4 +371,55 @@ private func rig(config: SalaryConfig = liveConfig(), start: Date) -> Rig {
     )
     let relaunched = TickerViewModel(container: container, clock: FakeClock(at(16, 0, day: 5)))
     #expect(relaunched.config.menuBarHidesAmount)
+}
+
+// MARK: - Reordering is reprioritising
+
+@Test @MainActor func draggingAGoalUpTheListMovesTheMoneyWithIt() {
+    // The list order is the funding order, so a drag is not cosmetic: it decides which
+    // goal the next ringgit belongs to, and both dates move with it.
+    let laptop = SavingsGoal(name: "Laptop", amount: 2_000, startedAt: at(9, 0, day: 3))
+    let trip = SavingsGoal(name: "Trip", amount: 2_000, startedAt: at(9, 0, day: 3))
+    let rig = rig(config: liveConfig(goals: [laptop, trip]), start: at(16, 0, day: 5))
+    rig.viewModel.refresh()
+
+    let laptopFirst = rig.viewModel.projection(for: laptop).earned
+    #expect(laptopFirst > rig.viewModel.projection(for: trip).earned)
+
+    rig.viewModel.moveGoals(from: IndexSet(integer: 1), to: 0)
+
+    #expect(rig.viewModel.config.goals.map(\.name) == ["Trip", "Laptop"])
+    #expect(rig.settings.stored.goals.map(\.name) == ["Trip", "Laptop"])
+    // The trip now gets what the laptop was getting, to the cent.
+    #expect(abs(rig.viewModel.projection(for: trip).earned - laptopFirst) < 1e-9)
+    #expect(rig.viewModel.projection(for: laptop).earned < laptopFirst)
+}
+
+@Test @MainActor func thePanelListsGoalsInThePriorityOrderTheyAreFundedIn() {
+    let goals = [
+        SavingsGoal(name: "First", amount: 500, isPinned: true, startedAt: at(9, 0, day: 3)),
+        SavingsGoal(name: "Second", amount: 500, isPinned: true, startedAt: at(9, 0, day: 3)),
+    ]
+    let rig = rig(config: liveConfig(goals: goals), start: at(16, 0, day: 5))
+    rig.viewModel.refresh()
+    #expect(rig.viewModel.pinnedGoals.map(\.goal.name) == ["First", "Second"])
+
+    rig.viewModel.moveGoals(from: IndexSet(integer: 1), to: 0)
+    #expect(rig.viewModel.pinnedGoals.map(\.goal.name) == ["Second", "First"])
+}
+
+@Test @MainActor func aMoveThatGoesNowhereChangesNothing() {
+    let goals = [
+        SavingsGoal(name: "A", amount: 100, startedAt: at(9, 0, day: 3)),
+        SavingsGoal(name: "B", amount: 100, startedAt: at(9, 0, day: 3)),
+    ]
+    let rig = rig(config: liveConfig(goals: goals), start: at(16, 0, day: 5))
+
+    rig.viewModel.moveGoals(from: IndexSet(integer: 0), to: 0)
+    #expect(rig.viewModel.config.goals.map(\.name) == ["A", "B"])
+
+    // Out of range must be ignored rather than trapping.
+    rig.viewModel.moveGoals(from: IndexSet(integer: 9), to: 0)
+    rig.viewModel.moveGoals(from: IndexSet(integer: 0), to: 99)
+    #expect(rig.viewModel.config.goals.count == 2)
 }

@@ -504,6 +504,19 @@ public struct Strings: Sendable {
           ms: "Lebih lima tahun lagi")
     }
 
+    /// The one rule a user has to know now that goals compete for the same money.
+    public var goalsPriorityCaption: String {
+        t(en: "Drag to reorder. Money fills the list from the top: a goal only starts filling once the ones above it are paid for.",
+          zh: "拖动可以调整顺序。钱从列表顶部往下填：上面的目标付清之后，下面的才开始攒。",
+          ja: "ドラッグして並べ替えられます。お金はリストの上から順に入ります。上の目標が払い終わるまで、下の目標は貯まり始めません。",
+          ko: "끌어서 순서를 바꿀 수 있습니다. 돈은 목록 위에서부터 채워지며, 위의 목표를 다 채운 뒤에야 아래 목표가 모이기 시작합니다.",
+          es: "Arrastra para reordenar. El dinero llena la lista desde arriba: un objetivo no empieza a llenarse hasta que los de encima están pagados.",
+          fr: "Glissez pour réordonner. L'argent remplit la liste par le haut : un objectif ne commence à se remplir qu'une fois ceux du dessus payés.",
+          de: "Zum Umsortieren ziehen. Das Geld füllt die Liste von oben: ein Ziel beginnt sich erst zu füllen, wenn die darüber bezahlt sind.",
+          pt: "Arraste para reordenar. O dinheiro preenche a lista de cima para baixo: um objetivo só começa a encher depois de pagos os que estão acima.",
+          ms: "Seret untuk susun semula. Wang mengisi senarai dari atas: sesuatu matlamat hanya mula terisi setelah yang di atasnya selesai dibayar.")
+    }
+
     public var goalsCaption: String {
         t(en: "A price becomes a number of working days, and a date the schedule says you will have it. The date holds still while you work — only changing your schedule moves it.",
           zh: "价格会换算成工作日数，以及按你的作息推算的到手日期。上班时这个日期不会动 —— 只有改作息或请假才会推迟它。",

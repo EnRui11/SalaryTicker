@@ -28,30 +28,114 @@ public enum GoalCalculator {
         earnedBeforeToday: Double? = nil,
         calendar: Calendar = .current
     ) -> GoalProjection {
+        projections(
+            for: [goal], config: config, now: now,
+            bankedSinceStart: earnedBeforeToday.map { [goal.startedAt: $0] },
+            calendar: calendar
+        ).first ?? .unreachable
+    }
+
+    // MARK: - A list of goals is not a set of independent ones
+
+    /// Projections for a whole list, funded in the order the list is in.
+    ///
+    /// This has to be a list operation. A ringgit can only be spent once, and the previous
+    /// per-goal version let every goal count all the money earned since it began: with
+    /// $3,333 in hand, two $3,000 goals both read 100% and the app said you could afford
+    /// both. Priority is the list's own order — first in the list is first to be paid.
+    ///
+    /// - Parameter bankedSinceStart: everything earned before today, per start instant,
+    ///   when the caller already has it. That is the expensive half and it only changes at
+    ///   midnight, so a ticking UI hands the same figures back every second.
+    public static func projections(
+        for goals: [SavingsGoal],
+        config: SalaryConfig,
+        now: Date,
+        bankedSinceStart: [Date: Double]? = nil,
+        calendar: Calendar = .current
+    ) -> [GoalProjection] {
         let rate = config.ratePerSecond(at: now, calendar: calendar)
-        guard goal.isValid, config.isValid, rate > 0, rate.isFinite else { return .unreachable }
-
-        let workSeconds = goal.amount / rate
-        let dailySeconds = config.dailyPaidSeconds
-        let workdays = dailySeconds > 0 ? workSeconds / dailySeconds : 0
-
-        let banked = earnedBeforeToday
-            ?? self.earnedBeforeToday(for: goal, config: config, now: now, calendar: calendar)
-        let earned = min(
-            banked + earnedToday(for: goal, config: config, now: now, calendar: calendar),
-            goal.amount
+        let funded = fundedAmounts(
+            for: goals, config: config, now: now,
+            bankedSinceStart: bankedSinceStart, calendar: calendar
         )
-        let remaining = max(0, goal.amount - earned)
 
-        return GoalProjection(
-            workSeconds: workSeconds,
-            workdays: workdays,
-            earned: earned,
-            progress: goal.amount > 0 ? min(max(earned / goal.amount, 0), 1) : 0,
-            readyAt: readyDate(
-                needing: remaining, config: config, now: now, calendar: calendar
+        // Each goal's date is the date the queue reaches the end of it, so a goal waits for
+        // everything above it before its own price starts being paid off.
+        var shortfallAhead = 0.0
+        return goals.map { goal in
+            guard goal.isValid, config.isValid, rate > 0, rate.isFinite else { return .unreachable }
+
+            let workSeconds = goal.amount / rate
+            let earned = min(funded[goal.id] ?? 0, goal.amount)
+            shortfallAhead += max(0, goal.amount - earned)
+
+            return GoalProjection(
+                // The price in work is the goal's own. Waiting your turn does not make a
+                // thing cost more of your life, it only moves the day you get it.
+                workSeconds: workSeconds,
+                workdays: config.dailyPaidSeconds > 0 ? workSeconds / config.dailyPaidSeconds : 0,
+                earned: earned,
+                progress: goal.amount > 0 ? min(max(earned / goal.amount, 0), 1) : 0,
+                readyAt: readyDate(
+                    needing: shortfallAhead, config: config, now: now, calendar: calendar
+                )
             )
-        )
+        }
+    }
+
+    /// How much of what has been earned belongs to each goal.
+    ///
+    /// Allocated chronologically, not just by rank: money earned at some moment goes to the
+    /// highest-priority goal that *had already been created by then* and is not yet full.
+    /// Ranking alone would let a goal added today reach back and take a month of earnings
+    /// away from an older one that had already been paid with it.
+    ///
+    /// The walk is over the instants goals joined the queue, because between two of those
+    /// the set of claimants cannot change.
+    static func fundedAmounts(
+        for goals: [SavingsGoal],
+        config: SalaryConfig,
+        now: Date,
+        bankedSinceStart: [Date: Double]?,
+        calendar: Calendar
+    ) -> [SavingsGoal.ID: Double] {
+        let queue = goals.filter { $0.isValid && $0.startedAt < now }
+        guard !queue.isEmpty, config.isValid else { return [:] }
+
+        // Everything still to come at the moment each goal joined. Computed once per
+        // distinct instant, so goals created in the same click share one walk.
+        var earnedSince: [Date: Double] = [:]
+        for start in Set(queue.map(\.startedAt)) {
+            let banked = bankedSinceStart?[start]
+                ?? earnedBeforeToday(since: start, config: config, now: now, calendar: calendar)
+            earnedSince[start] = banked
+                + earnedToday(since: start, config: config, now: now, calendar: calendar)
+        }
+
+        let boundaries = earnedSince.keys.sorted()
+        var funded: [SavingsGoal.ID: Double] = [:]
+        var remaining = Dictionary(uniqueKeysWithValues: queue.map { ($0.id, $0.amount) })
+
+        for (index, from) in boundaries.enumerated() {
+            // What was earned between this boundary and the next, or between it and now.
+            let stillToCome = index + 1 < boundaries.count
+                ? (earnedSince[boundaries[index + 1]] ?? 0)
+                : 0
+            var pot = max(0, (earnedSince[from] ?? 0) - stillToCome)
+            guard pot > 0 else { continue }
+
+            for goal in queue where goal.startedAt <= from {
+                let need = remaining[goal.id] ?? 0
+                guard need > 0 else { continue }
+                let take = min(pot, need)
+                funded[goal.id, default: 0] += take
+                remaining[goal.id] = need - take
+                pot -= take
+                if pot <= 0 { break }
+            }
+        }
+        return funded
     }
 
     /// Everything earned towards the goal since saving for it began.
@@ -79,18 +163,29 @@ public enum GoalCalculator {
         now: Date,
         calendar: Calendar = .current
     ) -> Double {
-        guard now > goal.startedAt else { return 0 }
+        earnedBeforeToday(since: goal.startedAt, config: config, now: now, calendar: calendar)
+    }
 
-        let firstDay = calendar.startOfDay(for: goal.startedAt)
+    /// As above, from a bare instant. The walks never needed a goal, only the moment
+    /// counting started, and the allocator asks about moments that belong to no goal.
+    public static func earnedBeforeToday(
+        since start: Date,
+        config: SalaryConfig,
+        now: Date,
+        calendar: Calendar = .current
+    ) -> Double {
+        guard now > start else { return 0 }
+
+        let firstDay = calendar.startOfDay(for: start)
         let today = calendar.startOfDay(for: now)
         // Saving started today, so nothing is banked yet; it is all in today's total.
         guard firstDay < today else { return 0 }
 
         // The first day counts only from the moment saving began; the rest count in full.
         var total = paid(
-            on: goal.startedAt,
-            between: goal.startedAt,
-            and: endOfDay(goal.startedAt, calendar: calendar),
+            on: start,
+            between: start,
+            and: endOfDay(start, calendar: calendar),
             config: config, calendar: calendar
         )
 
@@ -122,15 +217,24 @@ public enum GoalCalculator {
         now: Date,
         calendar: Calendar = .current
     ) -> Double {
-        guard now > goal.startedAt else { return 0 }
+        earnedToday(since: goal.startedAt, config: config, now: now, calendar: calendar)
+    }
+
+    public static func earnedToday(
+        since start: Date,
+        config: SalaryConfig,
+        now: Date,
+        calendar: Calendar = .current
+    ) -> Double {
+        guard now > start else { return 0 }
 
         let today = calendar.startOfDay(for: now)
         // Includes overtime, which `paidSecondsAccrued` alone would miss.
         var total = EarningsCalculator.earnings(config: config, at: now, calendar: calendar).todayEarned
 
-        if goal.startedAt > today {
+        if start > today {
             total -= paid(
-                on: now, between: today, and: goal.startedAt, config: config, calendar: calendar
+                on: now, between: today, and: start, config: config, calendar: calendar
             )
             // Overtime needs its own term. `paid` is built on `paidSecondsAccrued`, which
             // saturates at the end of the working window and so cannot see a single second
@@ -138,7 +242,7 @@ public enum GoalCalculator {
             // this, a goal created in the evening is born funded by the overtime that was
             // already on the clock, which is precisely what `startedAt` exists to prevent.
             total -= overtimePay(
-                on: now, upTo: goal.startedAt, config: config, calendar: calendar
+                on: now, upTo: start, config: config, calendar: calendar
             )
         }
         return max(0, total)
