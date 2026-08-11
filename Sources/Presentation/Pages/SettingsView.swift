@@ -23,6 +23,8 @@ struct SettingsView: View {
     @State private var zoneQuery = ""
     @State private var needsApproval = false
     @State private var launchError: String?
+    /// Deleting a goal is the only irreversible control in the app.
+    @State private var goalPendingDeletion: SavingsGoal?
 
     private var config: SalaryConfig { viewModel.config }
     private var text: Strings { Strings(config.language) }
@@ -64,6 +66,19 @@ struct SettingsView: View {
         .environment(\.locale, Locale(identifier: config.language.localeIdentifier))
         .onChange(of: viewModel.config) { viewModel.configChanged() }
         .onAppear { NSApp.activate() }
+        .confirmationDialog(
+            goalPendingDeletion.map { text.deleteGoalTitle($0.name) } ?? "",
+            isPresented: Binding(
+                get: { goalPendingDeletion != nil },
+                set: { if !$0 { goalPendingDeletion = nil } }
+            ),
+            presenting: goalPendingDeletion
+        ) { goal in
+            Button(text.deleteAction, role: .destructive) { viewModel.removeGoal(goal.id) }
+            Button(text.cancelAction, role: .cancel) {}
+        } message: { _ in
+            Text(text.deleteGoalMessage)
+        }
     }
 
     // MARK: Tabs
@@ -206,40 +221,80 @@ struct SettingsView: View {
         }
     }
 
+    /// One goal: what it is on the first line, what it will cost you underneath.
+    ///
+    /// The number is the point of the row. The list order decides who gets paid first, and
+    /// before this the only trace of that was the dates being further apart than they
+    /// looked like they should be.
     private func goalRow(_ goal: Binding<SavingsGoal>) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                reorderControls(for: goal.wrappedValue)
-                // labelsHidden keeps the title inside the field as a placeholder; a Form
-                // otherwise promotes it to a row label and strands the field beside it.
-                TextField(text.goalNamePlaceholder, text: goal.name)
-                    .textFieldStyle(.roundedBorder)
-                    .labelsHidden()
-                    .multilineTextAlignment(.leading)
-                TextField(text.goalPrice, value: goal.amount,
-                          format: .number.precision(.fractionLength(0...2)))
-                    .textFieldStyle(.roundedBorder)
-                    .labelsHidden()
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 90)
-                Button(role: .destructive) {
-                    viewModel.removeGoal(goal.wrappedValue.id)
-                } label: {
-                    Image(systemName: "trash")
+        let projection = viewModel.projection(for: goal.wrappedValue)
+        let place = viewModel.position(of: goal.wrappedValue.id)
+
+        return HStack(alignment: .top, spacing: 8) {
+            reorderControls(for: goal.wrappedValue)
+
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(spacing: 8) {
+                    queueBadge(place)
+                    // labelsHidden keeps the title inside the field as a placeholder; a Form
+                    // otherwise promotes it to a row label and strands the field beside it.
+                    TextField(text.goalNamePlaceholder, text: goal.name)
+                        .textFieldStyle(.roundedBorder)
+                        .labelsHidden()
+                    TextField(text.goalPrice, value: goal.amount,
+                              format: .number.precision(.fractionLength(0...2)))
+                        .textFieldStyle(.roundedBorder)
+                        .labelsHidden()
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 90)
+                    Button(role: .destructive) {
+                        goalPendingDeletion = goal.wrappedValue
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .buttonStyle(.borderless)
+                    .help(text.deleteAction)
                 }
-                .buttonStyle(.borderless)
-            }
-            HStack {
-                Toggle(text.showInPanel, isOn: goal.isPinned)
-                    .toggleStyle(.checkbox)
-                Spacer()
-                Text(summary(for: goal.wrappedValue))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+
+                if goal.wrappedValue.isValid {
+                    // The same two marks the panel uses for a goal, so the planning surface
+                    // and the watching surface read as one thing.
+                    HStack(spacing: 8) {
+                        ProgressView(value: projection.progress)
+                            .progressViewStyle(.linear)
+                        Text("\(Int((projection.progress * 100).rounded()))%")
+                            .font(.caption)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                            .frame(width: 34, alignment: .trailing)
+                    }
+                    HStack(alignment: .firstTextBaseline) {
+                        Toggle(text.showInPanel, isOn: goal.isPinned)
+                            .toggleStyle(.checkbox)
+                        Spacer(minLength: 12)
+                        Text(summary(for: goal.wrappedValue, projection))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                } else {
+                    Text(text.goalNeedsDetails)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 4)
+    }
+
+    /// Its place in the queue. Quiet — it is a fact about the row, not a call to action.
+    private func queueBadge(_ place: (index: Int, count: Int)?) -> some View {
+        Text("\((place?.index ?? 0) + 1)")
+            .font(.caption2.monospacedDigit())
+            .foregroundStyle(.secondary)
+            .frame(width: 18, height: 18)
+            .background(Circle().fill(Color.secondary.opacity(0.12)))
+            .accessibilityLabel(text.queuePosition((place?.index ?? 0) + 1, place?.count ?? 1))
     }
 
     /// Moves a goal up or down the funding queue.
@@ -268,10 +323,10 @@ struct SettingsView: View {
     }
 
     /// `1.4 working days · Ready Thu 6 Aug, 14:20`
-    private func summary(for goal: SavingsGoal) -> String {
+    private func summary(for goal: SavingsGoal, _ projection: GoalProjection) -> String {
         guard goal.isValid else { return "" }
-        let projection = viewModel.projection(for: goal)
         let cost = text.workdaysCost(Formatting.workdays(projection.workdays, language: config.language))
+        if projection.progress >= 1 { return "\(cost) · \(text.goalReached)" }
         guard let readyAt = projection.readyAt else { return "\(cost) · \(text.goalOutOfReach)" }
         let stamp = Formatting.readyTimestamp(
             readyAt, language: config.language, timeZone: config.calendar().timeZone

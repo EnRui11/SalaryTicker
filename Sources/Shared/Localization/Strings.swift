@@ -472,10 +472,16 @@ public struct Strings: Sendable {
     }
 
     public var noGoalsYet: String {
-        t(en: "Nothing on the list yet.", zh: "还没有目标。", ja: "まだ目標がありません。",
-          ko: "아직 목표가 없습니다.", es: "Todavía no hay nada.",
-          fr: "Rien pour l'instant.", de: "Noch nichts auf der Liste.",
-          pt: "Nada na lista ainda.", ms: "Belum ada sasaran.")
+        // An empty state that names the next move, rather than only reporting the absence.
+        t(en: "Nothing on the list yet. Add something you are saving for and it will be priced in working days.",
+          zh: "还没有目标。加一样你想攒钱买的东西，它会被换算成多少个工作日。",
+          ja: "まだ目標がありません。買いたいものを追加すると、何営業日ぶんかに換算されます。",
+          ko: "아직 목표가 없습니다. 사고 싶은 것을 추가하면 근무일 수로 환산해 드립니다.",
+          es: "Todavía no hay nada. Añade algo para lo que estés ahorrando y se te dirá en días de trabajo.",
+          fr: "Rien pour l'instant. Ajoutez ce pour quoi vous économisez : ce sera chiffré en jours de travail.",
+          de: "Noch nichts auf der Liste. Trag ein, wofür du sparst, und es wird in Arbeitstagen ausgerechnet.",
+          pt: "Nada na lista ainda. Adicione algo para o qual esteja a poupar e será convertido em dias de trabalho.",
+          ms: "Belum ada sasaran. Tambah sesuatu yang anda sedang kumpul duit untuknya, dan ia akan dikira dalam hari kerja.")
     }
 
     public func workdaysCost(_ days: String) -> String {
@@ -502,6 +508,55 @@ public struct Strings: Sendable {
           ko: "5년 이상", es: "A más de cinco años", fr: "À plus de cinq ans",
           de: "Mehr als fünf Jahre entfernt", pt: "A mais de cinco anos",
           ms: "Lebih lima tahun lagi")
+    }
+
+    // MARK: Settings — goals, destructive
+
+    /// Deleting a goal is the only irreversible thing in the app, so it asks first.
+    public func deleteGoalTitle(_ name: String) -> String {
+        t(en: "Delete “\(name)”?", zh: "删除「\(name)」？", ja: "「\(name)」を削除しますか？",
+          ko: "“\(name)”을(를) 삭제할까요?", es: "¿Eliminar «\(name)»?",
+          fr: "Supprimer « \(name) » ?", de: "„\(name)“ löschen?",
+          pt: "Eliminar “\(name)”?", ms: "Padam “\(name)”?")
+    }
+
+    public var deleteGoalMessage: String {
+        t(en: "This cannot be undone.", zh: "此操作无法撤销。", ja: "この操作は取り消せません。",
+          ko: "이 작업은 되돌릴 수 없습니다.", es: "Esto no se puede deshacer.",
+          fr: "Cette action est irréversible.", de: "Das lässt sich nicht rückgängig machen.",
+          pt: "Isto não pode ser anulado.", ms: "Tindakan ini tidak boleh dibatalkan.")
+    }
+
+    public var deleteAction: String {
+        t(en: "Delete", zh: "删除", ja: "削除", ko: "삭제",
+          es: "Eliminar", fr: "Supprimer", de: "Löschen", pt: "Eliminar", ms: "Padam")
+    }
+
+    public var cancelAction: String {
+        t(en: "Cancel", zh: "取消", ja: "キャンセル", ko: "취소",
+          es: "Cancelar", fr: "Annuler", de: "Abbrechen", pt: "Cancelar", ms: "Batal")
+    }
+
+    /// The empty half-typed goal a fresh row starts as.
+    public var goalNeedsDetails: String {
+        t(en: "Name it and give it a price to see what it costs.",
+          zh: "填上名字和价格，才能算出它值多少工作日。",
+          ja: "名前と価格を入れると、何日ぶんの仕事になるかが出ます。",
+          ko: "이름과 가격을 넣으면 며칠치 일인지 알려줍니다.",
+          es: "Ponle nombre y precio para ver lo que cuesta.",
+          fr: "Donnez-lui un nom et un prix pour voir ce qu'il coûte.",
+          de: "Name und Preis eintragen, dann steht da, was es kostet.",
+          pt: "Dê-lhe um nome e um preço para ver quanto custa.",
+          ms: "Beri nama dan harga untuk melihat berapa kosnya.")
+    }
+
+    /// Where a goal sits in the funding queue, for screen readers.
+    public func queuePosition(_ index: Int, _ total: Int) -> String {
+        t(en: "Position \(index) of \(total)", zh: "第 \(index) 位，共 \(total) 位",
+          ja: "\(total) 件中 \(index) 番目", ko: "\(total)개 중 \(index)번째",
+          es: "Posición \(index) de \(total)", fr: "Position \(index) sur \(total)",
+          de: "Position \(index) von \(total)", pt: "Posição \(index) de \(total)",
+          ms: "Kedudukan \(index) daripada \(total)")
     }
 
     public var moveGoalUp: String {

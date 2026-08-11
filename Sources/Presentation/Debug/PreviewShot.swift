@@ -118,6 +118,9 @@ enum PreviewShot {
             Scene(name: "settings-schedule", view: settings(tab: .schedule)),
             Scene(name: "settings-general", view: settings(tab: .general)),
             Scene(name: "settings-dark", view: settings(tab: .schedule), dark: true),
+            // Goals is the densest tab and the only one with a progress bar and a
+            // tinted badge in it, so it is the one worth seeing in both appearances.
+            Scene(name: "settings-goals-dark", view: settings(config: withGoals, tab: .goals), dark: true),
         ]
 
         // One panel and one settings page per language, so a translation that overflows
