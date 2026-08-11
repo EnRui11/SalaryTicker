@@ -172,7 +172,6 @@ struct MenuPanelView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .buttonStyle(.plain)
-            .keyboardShortcut("h")
 
             SettingsLink {
                 Label(text.settingsAction, systemImage: "gearshape")
