@@ -35,6 +35,13 @@ targets:
         product: SalaryCore
       - package: SalaryTicker
         product: SalaryPresentation
+      - package: SalaryTicker
+        product: SalarySync
+      # The phone carries the watch app, so installing one installs the other and the pair
+      # is a pair from the moment either exists.
+      - target: SalaryTickerWatch
+        embed: true
+        codeSign: false
     # Written out rather than generated, because the URL scheme the Mac's QR code points
     # at is an array and INFOPLIST_KEY_ settings only carry scalars.
     info:
@@ -79,6 +86,8 @@ targets:
         product: SalaryCore
       - package: SalaryTicker
         product: SalaryPresentation
+      - package: SalaryTicker
+        product: SalarySync
       - target: SalaryTickerComplication
         embed: true
     info:
@@ -86,12 +95,13 @@ targets:
       properties:
         CFBundleDisplayName: SalaryTicker
         WKApplication: true
-        # Watch-only: there is no companion iPhone app to pair it to, and without this the
-        # installer looks for a WKCompanionAppBundleIdentifier that does not exist.
-        WKWatchOnly: true
+        # The counterpart of the phone app rather than a standalone. WCSession exists only
+        # between a watch app and its companion, so "independent" and "receives the phone's
+        # settings" cannot both be true, and receiving the settings is what makes it usable.
+        WKCompanionAppBundleIdentifier: com.steve.salaryticker.mobile
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.steve.salaryticker.watch
+        PRODUCT_BUNDLE_IDENTIFIER: com.steve.salaryticker.mobile.watchkitapp
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         CODE_SIGNING_REQUIRED: NO
@@ -122,7 +132,7 @@ targets:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.steve.salaryticker.watch.complication
+        PRODUCT_BUNDLE_IDENTIFIER: com.steve.salaryticker.mobile.watchkitapp.complication
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         CODE_SIGNING_REQUIRED: NO

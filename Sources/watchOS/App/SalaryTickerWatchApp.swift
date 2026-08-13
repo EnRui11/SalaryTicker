@@ -1,5 +1,6 @@
 import SwiftUI
 import SalaryPresentation
+import SalarySync
 
 /// The watch app.
 ///
@@ -13,7 +14,13 @@ struct SalaryTickerWatchApp: App {
     var body: some Scene {
         WindowGroup {
             WatchTodayView(viewModel: viewModel)
-                .task { viewModel.start() }
+                .task {
+                    viewModel.start()
+                    // Settings cannot be typed here and a watch has no camera, so the
+                    // phone is the only way they arrive.
+                    ConfigBridge.shared.onReceive = { viewModel.apply($0) }
+                    ConfigBridge.shared.start()
+                }
         }
     }
 }

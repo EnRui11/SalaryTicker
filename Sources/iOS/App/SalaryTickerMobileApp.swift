@@ -3,6 +3,7 @@ import SalaryDomain
 import SalaryShared
 import SalaryCore
 import SalaryPresentation
+import SalarySync
 
 /// The phone app.
 ///
@@ -20,7 +21,16 @@ struct SalaryTickerMobileApp: App {
     var body: some Scene {
         WindowGroup {
             TodayView(viewModel: viewModel)
-                .task { viewModel.start() }
+                .task {
+                    viewModel.start()
+                    ConfigBridge.shared.start()
+                    ConfigBridge.shared.send(viewModel.config)
+                }
+                // The watch only ever wants the newest settings, so every edit is sent and
+                // each one replaces the last rather than queueing behind it.
+                .onChange(of: viewModel.config) { _, latest in
+                    ConfigBridge.shared.send(latest)
+                }
                 // The Mac draws a QR code; scanning it opens this. The same link works if
                 // it arrives any other way, which is what makes the import testable at all
                 // — a simulator has no camera, but it does have `simctl openurl`.

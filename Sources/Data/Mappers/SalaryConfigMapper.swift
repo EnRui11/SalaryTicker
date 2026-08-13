@@ -22,7 +22,15 @@ extension SalaryConfigDTO {
         goals = config.goals.map {
             SavingsGoalDTO(
                 id: $0.id.uuidString, name: $0.name, amount: $0.amount,
-                isPinned: $0.isPinned, startedAt: $0.startedAt.timeIntervalSince1970
+                isPinned: $0.isPinned,
+                // Rounded to the second, and not for tidiness. A Date holds seconds since
+                // 2001; the stored format holds seconds since 1970. Adding that offset and
+                // subtracting it again loses the low bits, so a goal created now did not
+                // survive a save and reload as an equal value — the difference was under a
+                // nanosecond and enough to make two identical configurations compare
+                // unequal. A start time to the second is more precision than the feature
+                // has ever needed.
+                startedAt: $0.startedAt.timeIntervalSince1970.rounded()
             )
         }
         menuBarShowsProgressRing = config.menuBarShowsProgressRing
