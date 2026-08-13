@@ -13,6 +13,17 @@ let package = Package(
     // Domain, Application, Data, Shared and Presentation are Foundation-only and build
     // for all three; only the executable and the login-item adapter are macOS-shaped.
     platforms: [.macOS(.v14), .iOS(.v17), .watchOS(.v10)],
+    // Exported so an Xcode target can depend on them. The macOS app does not need this --
+    // it is inside the package -- but an iOS or watchOS app is a separate project and can
+    // only see products.
+    products: [
+        .library(name: "SalaryDomain", targets: ["SalaryDomain"]),
+        .library(name: "SalaryApplication", targets: ["SalaryApplication"]),
+        .library(name: "SalaryData", targets: ["SalaryData"]),
+        .library(name: "SalaryShared", targets: ["SalaryShared"]),
+        .library(name: "SalaryCore", targets: ["SalaryCore"]),
+        .library(name: "SalaryPresentation", targets: ["SalaryPresentation"]),
+    ],
     targets: [
         // Pure business rules. No dependencies at all — not even on Foundation types
         // that imply storage or UI.

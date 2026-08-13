@@ -8,3 +8,5 @@ SalaryTicker.app/
 # Kept out of the repository so the drawing code stays the only source of truth for it.
 Packaging/AppIcon.icns
 .DS_Store
+
+# Generated from project.yml by xcodegen; see Packaging/build_ios.sh.
