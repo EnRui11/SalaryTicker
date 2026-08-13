@@ -10,7 +10,9 @@ import PackageDescription
 // types and system modules; the folders keep the plain layer names.
 let package = Package(
     name: "SalaryTicker",
-    platforms: [.macOS(.v14)],
+    // Domain, Application, Data, Shared and Presentation are Foundation-only and build
+    // for all three; only the executable and the login-item adapter are macOS-shaped.
+    platforms: [.macOS(.v14), .iOS(.v17), .watchOS(.v10)],
     targets: [
         // Pure business rules. No dependencies at all — not even on Foundation types
         // that imply storage or UI.

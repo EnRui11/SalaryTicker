@@ -1,6 +1,8 @@
 import Foundation
-import ServiceManagement
 import SalaryDomain
+
+#if os(macOS)
+import ServiceManagement
 
 /// `SMAppService`-backed implementation of the domain's login item contract.
 public struct SMAppServiceLoginItem: LoginItemService {
@@ -44,3 +46,18 @@ public struct SMAppServiceLoginItem: LoginItemService {
         }
     }
 }
+
+#else
+
+/// Everywhere but macOS there are no login items, so the contract is met by saying so
+/// rather than by pretending. The toggle asks `isSupported` and hides itself.
+public struct SMAppServiceLoginItem: LoginItemService {
+    public init() {}
+    public var isSupported: Bool { false }
+    public var state: LoginItemState { .unsupported }
+    public func register() throws { throw LoginItemError.notBundled }
+    public func unregister() throws { throw LoginItemError.notBundled }
+    public var statusDescription: String { "unsupported" }
+}
+
+#endif
