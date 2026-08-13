@@ -1,6 +1,10 @@
+import Foundation
+
+// watchOS has no CoreImage, and no reason to want it: a watch neither draws this code nor
+// scans one. Fenced rather than dropped, so the Mac and the phone keep it.
+#if canImport(CoreImage)
 import CoreImage
 import CoreImage.CIFilterBuiltins
-import Foundation
 
 /// Draws a string as a QR code.
 ///
@@ -24,3 +28,5 @@ public enum QRCode {
         return CIContext().createCGImage(enlarged, from: enlarged.extent)
     }
 }
+
+#endif
