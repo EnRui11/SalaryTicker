@@ -10,6 +10,8 @@ public struct AppContainer: Sendable {
     public let saveSettings: SaveSettingsUseCase
     public let calculateEarnings: CalculateEarningsUseCase
     public let setLaunchAtLogin: SetLaunchAtLoginUseCase
+    /// Carries a configuration to another machine, and reads one that arrives.
+    public let configLink: any ConfigLinkCoding
 
     public init(
         settings: any SettingsRepository = UserDefaultsSettingsRepository(),
@@ -20,6 +22,7 @@ public struct AppContainer: Sendable {
         saveSettings = SaveSettingsUseCase(repository: settings)
         calculateEarnings = CalculateEarningsUseCase(calendar: calendar)
         setLaunchAtLogin = SetLaunchAtLoginUseCase(service: loginItem)
+        configLink = ConfigLinkCoder()
     }
 
     /// Container backed by an isolated defaults suite, for previews and shots.

@@ -75,7 +75,7 @@ let package = Package(
         .testTarget(name: "SharedTests", dependencies: ["SalaryShared", "SalaryDomain"], path: "Tests/SharedTests"),
         .testTarget(
             name: "PresentationTests",
-            dependencies: ["SalaryPresentation", "SalaryDomain", "SalaryCore"],
+            dependencies: ["SalaryPresentation", "SalaryDomain", "SalaryCore", "SalaryData"],
             path: "Tests/PresentationTests"
         ),
     ]

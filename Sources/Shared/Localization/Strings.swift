@@ -510,6 +510,64 @@ public struct Strings: Sendable {
           ms: "Lebih lima tahun lagi")
     }
 
+    // MARK: Moving settings between machines
+
+    public var sendToPhone: String {
+        t(en: "Send to phone", zh: "发送到手机", ja: "iPhone に送る", ko: "iPhone으로 보내기",
+          es: "Enviar al teléfono", fr: "Envoyer au téléphone",
+          de: "Ans iPhone senden", pt: "Enviar para o telemóvel", ms: "Hantar ke telefon")
+    }
+
+    public var sendToPhoneCaption: String {
+        t(en: "Scan this with the iPhone app to copy every setting across. The code holds your salary — it goes camera to phone and nowhere else.",
+          zh: "用 iPhone 上的 app 扫这个码，所有设置就过去了。码里含有你的薪资 —— 它只从摄像头进手机，不经过任何别处。",
+          ja: "iPhone アプリでこれを読み取ると、設定がすべて移ります。コードには給与が入っている。カメラから iPhone へ渡るだけで、どこにも送られない。",
+          ko: "iPhone 앱으로 이 코드를 스캔하면 모든 설정이 넘어갑니다. 코드에는 급여가 들어 있으며, 카메라에서 iPhone으로만 전달되고 다른 곳으로는 가지 않습니다.",
+          es: "Escanéalo con la app del iPhone para llevarte todos los ajustes. El código contiene tu sueldo: va de la cámara al teléfono y a ningún otro sitio.",
+          fr: "Scannez-le avec l'app iPhone pour y recopier tous les réglages. Le code contient votre salaire : il va de l'appareil photo au téléphone, et nulle part ailleurs.",
+          de: "Mit der iPhone-App scannen, um alle Einstellungen zu übernehmen. Der Code enthält dein Gehalt — er geht von der Kamera aufs Telefon und sonst nirgendwohin.",
+          pt: "Digitalize com a app do iPhone para copiar todas as definições. O código contém o seu salário: vai da câmara para o telemóvel e mais nada.",
+          ms: "Imbas ini dengan app iPhone untuk menyalin semua tetapan. Kod ini mengandungi gaji anda — ia pergi dari kamera ke telefon sahaja.")
+    }
+
+    public var importTitle: String {
+        t(en: "Settings from your Mac", zh: "来自 Mac 的设置", ja: "Mac からの設定",
+          ko: "Mac에서 온 설정", es: "Ajustes desde tu Mac", fr: "Réglages depuis votre Mac",
+          de: "Einstellungen von deinem Mac", pt: "Definições do seu Mac",
+          ms: "Tetapan daripada Mac anda")
+    }
+
+    /// Says what will be lost, because importing replaces everything at once.
+    public var importMessage: String {
+        t(en: "This replaces every setting on this phone.",
+          zh: "这会替换掉这台手机上的全部设置。",
+          ja: "この iPhone の設定はすべて置き換わります。",
+          ko: "이 iPhone의 모든 설정이 대체됩니다.",
+          es: "Esto sustituye todos los ajustes de este teléfono.",
+          fr: "Cela remplace tous les réglages de ce téléphone.",
+          de: "Das ersetzt sämtliche Einstellungen auf diesem Telefon.",
+          pt: "Isto substitui todas as definições deste telemóvel.",
+          ms: "Ini menggantikan semua tetapan pada telefon ini.")
+    }
+
+    public var importAction: String {
+        t(en: "Replace settings", zh: "替换设置", ja: "設定を置き換える", ko: "설정 바꾸기",
+          es: "Sustituir ajustes", fr: "Remplacer les réglages", de: "Einstellungen ersetzen",
+          pt: "Substituir definições", ms: "Ganti tetapan")
+    }
+
+    public var importUnreadable: String {
+        t(en: "That link is not settings this app can read.",
+          zh: "这个链接不是本 app 能读的设置。",
+          ja: "このリンクはこのアプリが読める設定ではありません。",
+          ko: "이 링크는 이 앱이 읽을 수 있는 설정이 아닙니다.",
+          es: "Ese enlace no son ajustes que esta app pueda leer.",
+          fr: "Ce lien ne contient pas de réglages lisibles par cette app.",
+          de: "Dieser Link enthält keine Einstellungen, die diese App lesen kann.",
+          pt: "Essa ligação não são definições que esta app consiga ler.",
+          ms: "Pautan itu bukan tetapan yang app ini boleh baca.")
+    }
+
     // MARK: Settings — goals, destructive
 
     /// Deleting a goal is the only irreversible thing in the app, so it asks first.

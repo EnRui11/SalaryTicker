@@ -272,6 +272,28 @@ public final class TickerViewModel {
         refresh()
     }
 
+    // MARK: Moving the settings between machines
+
+    /// The link that carries this configuration to a phone. The Mac draws it as a QR code.
+    ///
+    /// It contains your salary. It never leaves the machine as long as it stays a picture
+    /// on screen and goes into a camera; copied out as text it deserves the same care as a
+    /// payslip.
+    public var shareLink: URL { container.configLink.url(for: config) }
+
+    /// What an arriving link would set, without setting it.
+    ///
+    /// Separate from applying it on purpose: importing replaces every setting at once, so
+    /// the user gets to see the salary and the hours before agreeing to them.
+    public func configuration(fromLink url: URL) -> SalaryConfig? {
+        container.configLink.config(from: url)
+    }
+
+    public func apply(_ imported: SalaryConfig) {
+        config = imported
+        configChanged()
+    }
+
     // MARK: Launch at login
 
     public var isLaunchAtLoginSupported: Bool { container.setLaunchAtLogin.isSupported }

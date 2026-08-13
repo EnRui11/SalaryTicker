@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import SalaryDomain
 import SalaryCore
+import SalaryData
 @testable import SalaryPresentation
 
 // The schedule these tests run against is the author's real one, so a number that shows up
@@ -482,4 +483,52 @@ private func rig(config: SalaryConfig = liveConfig(), start: Date) -> Rig {
     #expect(rig.viewModel.position(of: goals[2].id)?.index == 2)
     #expect(rig.viewModel.position(of: goals[2].id)?.count == 3)
     #expect(rig.viewModel.position(of: SavingsGoal(name: "ghost", amount: 1).id) == nil)
+}
+
+// MARK: - Carrying the settings to another machine
+
+@Test @MainActor func theShareLinkCarriesEverythingTheMacIsUsing() {
+    var config = liveConfig(goals: [SavingsGoal(name: "Trip", amount: 10_000, startedAt: at(9, 0, day: 3))])
+    config.monthlyAllowance = 500
+    config.dayOverrides = [DayKey(year: 2026, month: 8, day: 31): .paidLeave]
+    let rig = rig(config: config, start: at(16, 0, day: 5))
+
+    let arrived = rig.viewModel.configuration(fromLink: rig.viewModel.shareLink)
+    #expect(arrived == config)
+}
+
+@Test @MainActor func alinkIsInspectedBeforeItIsApplied() {
+    // Importing replaces every setting at once, so reading the link must not be the same
+    // act as accepting it.
+    let rig = rig(start: at(16, 0, day: 5))
+    var incoming = liveConfig()
+    incoming.monthlySalary = 9_999
+    let link = ConfigLinkCoder().url(for: incoming)
+
+    let preview = rig.viewModel.configuration(fromLink: link)
+    #expect(preview?.monthlySalary == 9_999)
+    #expect(rig.viewModel.config.monthlySalary == salary)      // nothing changed yet
+    #expect(rig.settings.saveCount == 0)
+
+    rig.viewModel.apply(preview!)
+    #expect(rig.viewModel.config.monthlySalary == 9_999)
+    #expect(rig.settings.stored.monthlySalary == 9_999)
+}
+
+@Test @MainActor func anApplipedImportRepricesEverythingImmediately() {
+    let rig = rig(start: at(16, 0, day: 5))
+    rig.viewModel.refresh()
+    let before = rig.viewModel.earnings.dailyPay
+
+    var richer = liveConfig()
+    richer.monthlySalary = salary * 2
+    rig.viewModel.apply(richer)
+
+    #expect(abs(rig.viewModel.earnings.dailyPay - before * 2) < 1e-6)
+}
+
+@Test @MainActor func aLinkFromSomethingElseIsNotAConfiguration() {
+    let rig = rig(start: at(16, 0, day: 5))
+    #expect(rig.viewModel.configuration(fromLink: URL(string: "https://example.com/")!) == nil)
+    #expect(rig.viewModel.config.monthlySalary == salary)
 }
