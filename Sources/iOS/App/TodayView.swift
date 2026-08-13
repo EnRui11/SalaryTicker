@@ -3,12 +3,15 @@ import SalaryDomain
 import SalaryShared
 import SalaryPresentation
 
-/// What the menu bar panel says, laid out for a phone held in one hand.
+/// The screen you actually look at.
 ///
-/// The same four blocks in the same order — today, the rates behind it, the month, the
-/// goals — because someone who uses both should not have to learn the app twice.
+/// One number is the hero and everything else is support: the rates that produce it sit in
+/// a single dense row rather than three full-width ones, and the month and the goals follow
+/// as separate cards. The same four things the menu bar panel shows, in the same order,
+/// because someone who uses both should not have to learn the app twice.
 struct TodayView: View {
     @Bindable var viewModel: TickerViewModel
+    @State private var showingSettings = false
 
     private var config: SalaryConfig { viewModel.config }
     private var text: Strings { Strings(config.language) }
@@ -17,31 +20,54 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    today
-                    rates
-                    month
-                    if !viewModel.pinnedGoals.isEmpty { goals }
+                if config.isValid {
+                    VStack(spacing: 18) {
+                        hero
+                        rates
+                        month
+                        goals
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 24)
+                } else {
+                    // The one state the app can be in where there is no number to show.
+                    // It names the next move rather than reporting the absence.
+                    EmptyHint(
+                        icon: "banknote",
+                        message: text.setupNotice,
+                        action: (text.settingsAction, { showingSettings = true })
+                    )
+                    .padding(.top, 60)
+                    .padding(.horizontal, 32)
                 }
-                .padding()
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle(text.sectionSalary)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingSettings = true } label: {
+                        Image(systemName: "gearshape")
+                    }
+                    .accessibilityLabel(text.settingsAction)
+                }
+            }
+            .sheet(isPresented: $showingSettings) {
+                MobileSettingsView(viewModel: viewModel)
+            }
         }
     }
 
-    // MARK: Today
+    // MARK: The number
 
-    private var today: some View {
-        VStack(spacing: 6) {
+    private var hero: some View {
+        VStack(spacing: 8) {
             Text(text.earnedToday)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            // The one number the app exists for. Scales down rather than wrapping, so a
-            // four-figure day and a two-figure morning sit on the same line.
             Text(Formatting.money(earnings.todayEarned, config: config))
-                .font(.system(size: 52, weight: .semibold, design: .rounded))
+                .font(.system(size: 56, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.4)
@@ -51,30 +77,65 @@ struct TodayView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
-            ProgressView(value: earnings.progress.isFinite ? min(max(earnings.progress, 0), 1) : 0)
-                .padding(.top, 4)
+            ProgressView(value: clamped(earnings.progress))
+                .padding(.top, 10)
+                .padding(.horizontal, 4)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .padding(.top, 12)
+        .padding(.bottom, 4)
     }
 
-    // MARK: Rates
+    // MARK: What produces it
 
+    /// Three related facts, so one row rather than three. They never change within a day,
+    /// which is exactly why they should not each take a line of a phone screen.
     private var rates: some View {
-        card {
-            row(text.perSecond, Formatting.money(earnings.ratePerSecond, config: config))
-            Divider()
-            row(text.hourly, money(earnings.hourlyPay))
-            Divider()
-            row(text.fullDay, money(earnings.dailyPay))
+        HStack(spacing: 0) {
+            // Four places, matching the menu bar panel and not the configured precision:
+            // a per-second rate rounded to two says $0.01 and means nothing.
+            rate(text.perSecond, Formatting.money(
+                earnings.ratePerSecond, symbol: config.currencySymbol,
+                digits: 4, language: config.language
+            ))
+            RowDivider().frame(width: 1, height: 34)
+            rate(text.hourly, money(earnings.hourlyPay))
+            RowDivider().frame(width: 1, height: 34)
+            rate(text.fullDay, money(earnings.dailyPay))
         }
+        .padding(.vertical, 14)
+        .background(
+            Color(.secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
     }
+
+    private func rate(_ label: String, _ value: String) -> some View {
+        VStack(spacing: 3) {
+            Text(value)
+                .font(.callout.weight(.medium))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: The month
 
     private var month: some View {
-        card {
-            row(text.monthToDate, money(earnings.monthEarned), prominent: true)
-            Divider()
-            row(
+        Card {
+            LabeledRow(label: text.monthToDate) {
+                Text(money(earnings.monthEarned))
+                    .font(.title3.weight(.semibold))
+                    .monospacedDigit()
+            }
+            RowDivider()
+            LabeledRow(
                 text.workdaysDone(
                     earnings.workdaysCompletedThisMonth, earnings.workdaysThisMonth
                 ),
@@ -83,46 +144,56 @@ struct TodayView: View {
         }
     }
 
-    private var goals: some View {
-        card {
-            ForEach(Array(viewModel.pinnedGoals.enumerated()), id: \.element.goal.id) { index, entry in
-                if index > 0 { Divider() }
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text(entry.goal.name).lineLimit(1)
-                        Spacer()
-                        Text("\(Int((entry.projection.progress * 100).rounded()))%")
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                    }
-                    ProgressView(value: entry.projection.progress)
-                    Text(caption(for: entry.projection))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+    // MARK: Goals
+
+    @ViewBuilder private var goals: some View {
+        if viewModel.pinnedGoals.isEmpty {
+            Card(title: text.sectionGoals) {
+                EmptyHint(icon: "target", message: text.noGoalsYet)
+            }
+        } else {
+            Card(title: text.sectionGoals) {
+                ForEach(Array(viewModel.pinnedGoals.enumerated()), id: \.element.goal.id) { index, entry in
+                    if index > 0 { RowDivider() }
+                    goalRow(index: index, entry.goal, entry.projection)
                 }
-                .padding(.vertical, 2)
             }
         }
     }
 
-    // MARK: Pieces
-
-    private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(spacing: 10) { content() }
-            .padding()
-            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
+    private func goalRow(index: Int, _ goal: SavingsGoal, _ projection: GoalProjection) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 8) {
+                // Its place in the queue. Goals are funded top down, so the order is a
+                // fact about the money and not just about the list.
+                Text("\(index + 1)")
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18, height: 18)
+                    .background(Circle().fill(Color.secondary.opacity(0.12)))
+                Text(goal.name).lineLimit(1)
+                Spacer()
+                Text("\(Int((projection.progress * 100).rounded()))%")
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+            ProgressView(value: clamped(projection.progress))
+            Text(caption(for: projection))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+        .padding(.vertical, 11)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "\(text.queuePosition(index + 1, viewModel.pinnedGoals.count)), \(goal.name)"
+        )
     }
 
-    private func row(_ label: String, _ value: String, prominent: Bool = false) -> some View {
-        HStack {
-            Text(label).foregroundStyle(prominent ? .primary : .secondary)
-            Spacer()
-            Text(value)
-                .monospacedDigit()
-                .fontWeight(prominent ? .semibold : .regular)
-        }
-        .font(prominent ? .title3 : .body)
+    // MARK: Pieces
+
+    private func clamped(_ value: Double) -> Double {
+        value.isFinite ? min(max(value, 0), 1) : 0
     }
 
     private func money(_ amount: Double) -> String {
@@ -130,8 +201,8 @@ struct TodayView: View {
     }
 
     private func caption(for projection: GoalProjection) -> String {
-        guard let readyAt = projection.readyAt else { return text.goalOutOfReach }
         if projection.progress >= 1 { return text.goalReached }
+        guard let readyAt = projection.readyAt else { return text.goalOutOfReach }
         return text.readyBy(Formatting.readyTimestamp(
             readyAt, language: config.language, timeZone: config.calendar().timeZone
         ))

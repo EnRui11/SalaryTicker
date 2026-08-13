@@ -510,6 +510,19 @@ public struct Strings: Sendable {
           ms: "Lebih lima tahun lagi")
     }
 
+    public var doneAction: String {
+        t(en: "Done", zh: "完成", ja: "完了", ko: "완료",
+          es: "Listo", fr: "OK", de: "Fertig", pt: "Concluído", ms: "Selesai")
+    }
+
+    /// The screen's own title. `settingsAction` carries the ellipsis that means "opens a
+    /// window", which is right on a menu item and wrong at the top of the thing it opened.
+    public var settingsTitle: String {
+        t(en: "Settings", zh: "设置", ja: "設定", ko: "설정",
+          es: "Ajustes", fr: "Réglages", de: "Einstellungen",
+          pt: "Definições", ms: "Tetapan")
+    }
+
     // MARK: Moving settings between machines
 
     public var sendToPhone: String {
