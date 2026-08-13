@@ -2,6 +2,7 @@ import SwiftUI
 import SalaryDomain
 import SalaryShared
 import SalaryPresentation
+import SalaryGlass
 
 /// The screen you actually look at.
 ///
@@ -41,7 +42,9 @@ struct TodayView: View {
                     .padding(.horizontal, 32)
                 }
             }
-            .background(Color(.systemGroupedBackground))
+            // Glass needs something behind it; over a flat colour it is just a wrong grey.
+            .background(GlassBackdrop())
+            .scrollContentBackground(.hidden)
             .navigationTitle(text.sectionSalary)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -104,10 +107,7 @@ struct TodayView: View {
             rate(text.fullDay, money(earnings.dailyPay))
         }
         .padding(.vertical, 14)
-        .background(
-            Color(.secondarySystemGroupedBackground),
-            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-        )
+        .glassPanel()
     }
 
     private func rate(_ label: String, _ value: String) -> some View {

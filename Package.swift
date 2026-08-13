@@ -21,6 +21,7 @@ let package = Package(
         .library(name: "SalaryApplication", targets: ["SalaryApplication"]),
         .library(name: "SalaryData", targets: ["SalaryData"]),
         .library(name: "SalaryShared", targets: ["SalaryShared"]),
+        .library(name: "SalaryGlass", targets: ["SalaryGlass"]),
         .library(name: "SalaryCore", targets: ["SalaryCore"]),
         .library(name: "SalaryPresentation", targets: ["SalaryPresentation"]),
     ],
@@ -34,6 +35,10 @@ let package = Package(
 
         // Repository implementations, DTOs, mappers, local store.
         .target(name: "SalaryData", dependencies: ["SalaryDomain"], path: "Sources/Data"),
+
+        // The glassmorphism treatment, shared so the three platforms cannot drift into
+        // three different ideas of the same look.
+        .target(name: "SalaryGlass", path: "Sources/Glass"),
 
         // Domain-neutral reusable pieces: formatting and the string table.
         .target(name: "SalaryShared", dependencies: ["SalaryDomain"], path: "Sources/Shared"),
@@ -60,6 +65,7 @@ let package = Package(
             name: "SalaryTicker",
             dependencies: [
                 "SalaryDomain", "SalaryApplication", "SalaryShared", "SalaryCore", "SalaryPresentation", "SalaryData",
+                "SalaryGlass",
             ],
             path: "Sources/Presentation",
             exclude: ["State"]

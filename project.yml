@@ -29,6 +29,8 @@ targets:
       - package: SalaryTicker
         product: SalaryShared
       - package: SalaryTicker
+        product: SalaryGlass
+      - package: SalaryTicker
         product: SalaryCore
       - package: SalaryTicker
         product: SalaryPresentation

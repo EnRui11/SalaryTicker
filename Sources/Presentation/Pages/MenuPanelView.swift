@@ -3,6 +3,7 @@ import SalaryDomain
 import SalaryShared
 import SalaryCore
 import SalaryPresentation
+import SalaryGlass
 
 /// The panel that drops down from the status item.
 struct MenuPanelView: View {
@@ -13,6 +14,13 @@ struct MenuPanelView: View {
     private var text: Strings { Strings(config.language) }
 
     var body: some View {
+        panel
+            // The panel is small and already sits on system vibrancy; the backdrop gives
+            // the material something with colour in it to sample rather than flat grey.
+            .background(GlassBackdrop())
+    }
+
+    private var panel: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
             if earnings.status == .misconfigured {
@@ -71,6 +79,10 @@ struct MenuPanelView: View {
             row(text.hourly, Formatting.money(earnings.hourlyPay, symbol: config.currencySymbol, digits: 2, language: config.language))
             row(text.fullDay, Formatting.money(earnings.dailyPay, symbol: config.currencySymbol, digits: 2, language: config.language))
         }
+        // The one pane of glass in the panel. The rest of the rows stay on the backdrop:
+        // stacked blurs stop reading as depth and start reading as fog.
+        .padding(10)
+        .glassPanel(radius: 12)
     }
 
     private var monthToDate: some View {

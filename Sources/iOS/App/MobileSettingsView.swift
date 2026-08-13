@@ -2,6 +2,7 @@ import SwiftUI
 import SalaryDomain
 import SalaryShared
 import SalaryPresentation
+import SalaryGlass
 
 /// Everything the Mac can set, on a phone.
 ///
@@ -31,7 +32,8 @@ struct MobileSettingsView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(GlassBackdrop())
+            .scrollContentBackground(.hidden)
             .navigationTitle(text.settingsTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

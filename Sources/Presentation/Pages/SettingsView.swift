@@ -3,6 +3,7 @@ import SalaryDomain
 import SalaryShared
 import SalaryCore
 import SalaryPresentation
+import SalaryGlass
 
 /// The settings window.
 ///
@@ -63,6 +64,8 @@ struct SettingsView: View {
         // would leave its last rows below the fold on first open, which is the exact problem
         // tabs were meant to fix.
         .frame(width: 500, height: 660)
+        .background(GlassBackdrop())
+        .scrollContentBackground(.hidden)
         // Also drives DatePicker, so the clock reads in the chosen language's convention.
         .environment(\.locale, Locale(identifier: config.language.localeIdentifier))
         .onChange(of: viewModel.config) { viewModel.configChanged() }

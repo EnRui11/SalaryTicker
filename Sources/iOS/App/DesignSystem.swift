@@ -1,4 +1,5 @@
 import SwiftUI
+import SalaryGlass
 
 // The pieces both screens are built from, in one place rather than copied per view.
 //
@@ -26,10 +27,7 @@ struct Card<Content: View>: View {
             VStack(spacing: 0) { content }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 4)
-                .background(
-                    Color(.secondarySystemGroupedBackground),
-                    in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-                )
+                .glassPanel()
         }
     }
 }
