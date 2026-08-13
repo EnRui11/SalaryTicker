@@ -1,29 +1,24 @@
 import SwiftUI
 
-// Glassmorphism, shared by the menu bar, the phone and the watch so the three cannot drift
+// Liquid Glass, shared by the menu bar, the phone and the watch so the three cannot drift
 // into three different ideas of the same look.
 //
-// The properties it is built to: a 10–30px blur, panels at roughly a quarter opacity, a
-// low-contrast rim rather than a glowing border, one soft shadow from one light direction,
-// and — the part that is easy to skip and fatal to skip — a backdrop with something in it.
-// Glass over a flat colour is just a slightly wrong grey.
+// The hand-rolled version this replaces stacked a material, a gradient rim and a shadow to
+// imitate glass. The system does all three properly and does the parts imitation cannot:
+// the specular highlight tracks the light, the edge bends what is behind it, and adjacent
+// panes inside a container merge and separate as they move rather than sliding over one
+// another like stickers.
 //
-// Two rules from the same source are kept deliberately: glass goes on a few key surfaces
-// rather than everything, and text is never tinted onto a tint. Labels stay on the system's
-// semantic colours, which already meet contrast in both appearances; the glass sits behind
-// them and never between them and the reader.
-
-public extension ShapeStyle where Self == Material {
-    /// The panel material. `ultraThin` rather than `thick`: the point is to see the
-    /// backdrop move behind it.
-    static var glassPanel: Material { .ultraThinMaterial }
-}
+// Two rules are kept from the design brief and are not the framework's job. Glass goes on a
+// few surfaces per screen and not on all of them — stacked panes stop reading as depth and
+// start reading as fog. And a backdrop with something in it is still required: glass over a
+// flat colour is a slightly wrong grey no matter who draws it.
 
 /// A backdrop worth putting glass over.
 ///
-/// Two soft washes of colour over the system background, blurred well past the point of
-/// being shapes. Cheap — no image, nothing animating — and enough that the material has
-/// something to refract instead of a flat field.
+/// Radial gradients rather than blurred circles. A blur is a render-pass effect: it does not
+/// survive an offscreen capture, and it sizes in points, so a wash tuned on a phone arrives
+/// on a menu bar panel as two hard discs the size of the panel.
 public struct GlassBackdrop: View {
     private let tint: Color
 
@@ -32,10 +27,6 @@ public struct GlassBackdrop: View {
     }
 
     public var body: some View {
-        // Radial gradients rather than blurred circles. A blur is a render-pass effect: it
-        // does not survive an offscreen capture, and it sizes in points, so a wash tuned on
-        // a phone arrives on a menu bar panel as two hard discs the size of the panel.
-        // Gradients scale with whatever they are given and cost nothing.
         ZStack {
             baseColour
             GeometryReader { proxy in
@@ -44,15 +35,11 @@ public struct GlassBackdrop: View {
                     // One light direction, top-leading, held to on every surface.
                     RadialGradient(
                         colors: [tint.opacity(0.30), .clear],
-                        center: .topLeading,
-                        startRadius: 0,
-                        endRadius: span * 0.9
+                        center: .topLeading, startRadius: 0, endRadius: span * 0.9
                     )
                     RadialGradient(
                         colors: [tint.opacity(0.16), .clear],
-                        center: .bottomTrailing,
-                        startRadius: 0,
-                        endRadius: span * 0.8
+                        center: .bottomTrailing, startRadius: 0, endRadius: span * 0.8
                     )
                 }
             }
@@ -71,47 +58,39 @@ public struct GlassBackdrop: View {
     }
 }
 
-/// One pane of glass.
-///
-/// The rim is a gradient rather than a stroke of one colour: a border of even brightness
-/// reads as a drawn outline, while a highlight that fades away from the light reads as an
-/// edge catching it.
-public struct GlassPanel: ViewModifier {
-    private let radius: CGFloat
-    private let elevated: Bool
-
-    public init(radius: CGFloat = 16, elevated: Bool = false) {
-        self.radius = radius
-        self.elevated = elevated
+public extension View {
+    /// Makes this a pane of glass.
+    ///
+    /// - Parameter elevated: the clear variant, which lets more of the backdrop through.
+    ///   For the one surface on a screen that should feel closest to the reader.
+    func glassPanel(radius: CGFloat = 16, elevated: Bool = false) -> some View {
+        glassEffect(
+            elevated ? .clear : .regular,
+            in: .rect(cornerRadius: radius, style: .continuous)
+        )
     }
 
-    public func body(content: Content) -> some View {
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        return content
-            .background(.glassPanel, in: shape)
-            .overlay(
-                shape.strokeBorder(
-                    LinearGradient(
-                        colors: [.white.opacity(0.35), .white.opacity(0.06)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-            )
-            .shadow(
-                color: .black.opacity(elevated ? 0.22 : 0.12),
-                radius: elevated ? 18 : 10,
-                x: 0,
-                y: elevated ? 8 : 4
-            )
+    /// Marks a pane so it can merge with its neighbours inside a `GlassGroup`.
+    func glassMember(_ id: some Hashable & Sendable, in namespace: Namespace.ID) -> some View {
+        glassEffectID(id, in: namespace)
     }
 }
 
-public extension View {
-    /// Makes this a pane of glass. Used on a few surfaces per screen, never on all of them:
-    /// stacked blurs stop reading as depth and start reading as fog.
-    func glassPanel(radius: CGFloat = 16, elevated: Bool = false) -> some View {
-        modifier(GlassPanel(radius: radius, elevated: elevated))
+/// Groups panes that should behave as one piece of glass.
+///
+/// Without this each pane is independent and they slide over each other; inside it the
+/// system lets them stretch towards each other and merge as they come close, which is the
+/// whole reason the material is called liquid.
+public struct GlassGroup<Content: View>: View {
+    private let spacing: CGFloat
+    private let content: Content
+
+    public init(spacing: CGFloat = 16, @ViewBuilder content: () -> Content) {
+        self.spacing = spacing
+        self.content = content()
+    }
+
+    public var body: some View {
+        GlassEffectContainer(spacing: spacing) { content }
     }
 }

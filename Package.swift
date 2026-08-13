@@ -12,7 +12,13 @@ let package = Package(
     name: "SalaryTicker",
     // Domain, Application, Data, Shared and Presentation are Foundation-only and build
     // for all three; only the executable and the login-item adapter are macOS-shaped.
-    platforms: [.macOS(.v14), .iOS(.v17), .watchOS(.v10)],
+    //
+    // The floor is 26 across the board because the UI is built on Liquid Glass, which does
+    // not exist below it. That would be a serious narrowing for something with users on
+    // older machines; this has one user, whose Mac, phone and watch all run 26, and no way
+    // to be distributed anyway. Dropping back is a one-line change if that ever stops
+    // being true.
+    platforms: [.macOS("26.0"), .iOS("26.0"), .watchOS("26.0")],
     // Exported so an Xcode target can depend on them. The macOS app does not need this --
     // it is inside the package -- but an iOS or watchOS app is a separate project and can
     // only see products.
