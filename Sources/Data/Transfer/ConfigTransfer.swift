@@ -50,7 +50,13 @@ public enum ConfigTransfer {
     /// `=`. The URL-safe alphabet avoids the escaping entirely, which keeps the QR code
     /// smaller and stops a link surviving one round of encoding but not two.
     private static func encode(_ config: SalaryConfig) -> String {
-        guard let data = try? JSONEncoder().encode(SalaryConfigDTO(config)) else { return "" }
+        guard let json = try? JSONEncoder().encode(SalaryConfigDTO(config)) else { return "" }
+        // Deflated first, which halves it. That is not housekeeping: the payload becomes a
+        // QR code, and every character is more modules crammed into the same square. A
+        // realistic configuration goes from about 1,200 characters to about 640, which is
+        // several QR versions coarser and the difference between scanning at arm's length
+        // and hunting for the angle that works.
+        let data = (try? (json as NSData).compressed(using: .zlib) as Data) ?? json
         return data.base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
@@ -64,7 +70,11 @@ public enum ConfigTransfer {
         // The padding was dropped on the way out; base64 decoding wants it back.
         let remainder = text.count % 4
         if remainder > 0 { text += String(repeating: "=", count: 4 - remainder) }
-        return Data(base64Encoded: text)
+        guard let data = Data(base64Encoded: text) else { return nil }
+
+        // Deflated on the way out, but a link that predates that is still readable: if the
+        // bytes are not a zlib stream they are the JSON itself.
+        return (try? (data as NSData).decompressed(using: .zlib) as Data) ?? data
     }
 }
 

@@ -59,7 +59,7 @@ let package = Package(
         .executableTarget(
             name: "SalaryTicker",
             dependencies: [
-                "SalaryDomain", "SalaryApplication", "SalaryShared", "SalaryCore", "SalaryPresentation",
+                "SalaryDomain", "SalaryApplication", "SalaryShared", "SalaryCore", "SalaryPresentation", "SalaryData",
             ],
             path: "Sources/Presentation",
             exclude: ["State"]

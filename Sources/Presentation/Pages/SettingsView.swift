@@ -25,6 +25,7 @@ struct SettingsView: View {
     @State private var launchError: String?
     /// Deleting a goal is the only irreversible control in the app.
     @State private var goalPendingDeletion: SavingsGoal?
+    @State private var showingSendToPhone = false
 
     private var config: SalaryConfig { viewModel.config }
     private var text: Strings { Strings(config.language) }
@@ -66,6 +67,13 @@ struct SettingsView: View {
         .environment(\.locale, Locale(identifier: config.language.localeIdentifier))
         .onChange(of: viewModel.config) { viewModel.configChanged() }
         .onAppear { NSApp.activate() }
+        .sheet(isPresented: $showingSendToPhone) {
+            SendToPhoneSheet(
+                link: viewModel.shareLink,
+                text: text,
+                onClose: { showingSendToPhone = false }
+            )
+        }
         .confirmationDialog(
             goalPendingDeletion.map { text.deleteGoalTitle($0.name) } ?? "",
             isPresented: Binding(
@@ -387,6 +395,13 @@ struct SettingsView: View {
             }
 
             Section(text.sectionSystem) {
+                Button {
+                    showingSendToPhone = true
+                } label: {
+                    Label(text.sendToPhone, systemImage: "qrcode")
+                }
+                .disabled(!config.isValid)
+
                 // Bound to the stored intent, not to SMAppService — see SalaryConfig.
                 Toggle(text.launchAtLogin, isOn: $viewModel.config.launchAtLoginEnabled)
                     .disabled(!viewModel.isLaunchAtLoginSupported)

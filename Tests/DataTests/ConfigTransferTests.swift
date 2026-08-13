@@ -137,3 +137,27 @@ private func sample() -> SalaryConfig {
         #expect(ConfigTransfer.config(from: url)?.goals.first?.amount == 1_234)
     }
 }
+
+@Test func theLinkIsDeflatedSoTheQrCodeStaysCoarseEnoughToScan() {
+    // Every character is more modules in the same square. A realistic configuration is
+    // about 900 bytes of JSON; left as-is the code is dense enough that scanning it from a
+    // screen becomes a hunt for the right angle.
+    let url = ConfigTransfer.url(for: sample())
+    #expect(url.absoluteString.count < 800, "\(url.absoluteString.count) characters")
+}
+
+@Test func aLinkWrittenBeforeTheDeflationStillReads() {
+    // Nothing has shipped uncompressed, but the diagnostic flag printed one, and a decoder
+    // that only understands its own latest output is a decoder that breaks on upgrade.
+    // One `sample()`, not two: it mints fresh goal ids on every call, so comparing against
+    // a second one fails on identity alone and says nothing about the decoding.
+    let original = sample()
+    let json = try! JSONEncoder().encode(SalaryConfigDTO(original))
+    let raw = json.base64EncodedString()
+        .replacingOccurrences(of: "+", with: "-")
+        .replacingOccurrences(of: "/", with: "_")
+        .replacingOccurrences(of: "=", with: "")
+    let link = URL(string: "salaryticker://config?v=1&d=\(raw)")!
+
+    #expect(ConfigTransfer.config(from: link) == original)
+}

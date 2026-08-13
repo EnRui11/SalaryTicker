@@ -3,6 +3,7 @@ import SwiftUI
 import SalaryDomain
 import SalaryShared
 import SalaryCore
+import SalaryData
 import SalaryPresentation
 
 /// Offscreen rendering of the UI, used to eyeball every state without needing
@@ -121,6 +122,13 @@ enum PreviewShot {
             // Goals is the densest tab and the only one with a progress bar and a
             // tinted badge in it, so it is the one worth seeing in both appearances.
             Scene(name: "settings-goals-dark", view: settings(config: withGoals, tab: .goals), dark: true),
+            // The QR is generated from the settings, so a shot of it is a check that the
+            // link, the encoder and the drawing all still line up.
+            Scene(name: "send-to-phone", view: AnyView(SendToPhoneSheet(
+                link: ConfigLinkCoder().url(for: withGoals),
+                text: Strings(withGoals.language),
+                onClose: {}
+            ))),
         ]
 
         // One panel and one settings page per language, so a translation that overflows
