@@ -29,6 +29,7 @@ let package = Package(
         .library(name: "SalaryShared", targets: ["SalaryShared"]),
         .library(name: "SalaryGlass", targets: ["SalaryGlass"]),
         .library(name: "SalarySync", targets: ["SalarySync"]),
+        .library(name: "SalaryActivity", targets: ["SalaryActivity"]),
         .library(name: "SalaryCore", targets: ["SalaryCore"]),
         .library(name: "SalaryPresentation", targets: ["SalaryPresentation"]),
     ],
@@ -47,9 +48,17 @@ let package = Package(
         // three different ideas of the same look.
         .target(name: "SalaryGlass", path: "Sources/Glass"),
 
+        // What the Live Activity carries, shared by the app that starts it and the
+        // extension that draws it.
+        .target(name: "SalaryActivity", path: "Sources/Activity"),
+
         // Phone-to-watch delivery. Thin on purpose: what travels is built and read by
         // SalaryData, which is testable, and this only hands it to WatchConnectivity.
-        .target(name: "SalarySync", dependencies: ["SalaryDomain", "SalaryData"], path: "Sources/Sync"),
+        .target(
+            name: "SalarySync",
+            dependencies: ["SalaryDomain", "SalaryData", "SalaryApplication", "SalaryActivity"],
+            path: "Sources/Sync"
+        ),
 
         // Domain-neutral reusable pieces: formatting and the string table.
         .target(name: "SalaryShared", dependencies: ["SalaryDomain"], path: "Sources/Shared"),

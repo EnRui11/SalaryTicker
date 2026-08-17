@@ -4,6 +4,7 @@ import SalaryShared
 import SalaryCore
 import SalaryPresentation
 import SalarySync
+import SalaryActivity
 
 /// The phone app.
 ///
@@ -25,6 +26,14 @@ struct SalaryTickerMobileApp: App {
                     viewModel.start()
                     ConfigBridge.shared.start()
                     ConfigBridge.shared.send(viewModel.config)
+                }
+                // The only moment iOS lets the figure be refreshed is while the app is in
+                // front, so it is refreshed on every tick it is in front for and left
+                // stamped with the time it stopped.
+                .onChange(of: viewModel.earnings.todayEarned) {
+                    LiveActivityController.refresh(
+                        config: viewModel.config, earnings: viewModel.earnings
+                    )
                 }
                 // The watch only ever wants the newest settings, so every edit is sent and
                 // each one replaces the last rather than queueing behind it.

@@ -37,6 +37,11 @@ targets:
         product: SalaryPresentation
       - package: SalaryTicker
         product: SalarySync
+      - package: SalaryTicker
+        product: SalaryActivity
+      - target: SalaryTickerLiveActivity
+        embed: true
+        codeSign: false
       # The phone carries the watch app, so installing one installs the other and the pair
       # is a pair from the moment either exists.
       - target: SalaryTickerWatch
@@ -53,6 +58,8 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: com.steve.salaryticker.mobile
             CFBundleURLSchemes: [salaryticker]
+        # Without this the activity request is refused and nothing says why.
+        NSSupportsLiveActivities: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.steve.salaryticker.mobile
@@ -133,6 +140,31 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.steve.salaryticker.mobile.watchkitapp.complication
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_ALLOWED: NO
+
+  # The Dynamic Island and the lock screen. Everything that moves on it is animated by iOS
+  # across a date range, so it keeps running long after the app that started it has gone.
+  SalaryTickerLiveActivity:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Sources/iOS/LiveActivity
+    dependencies:
+      - package: SalaryTicker
+        product: SalaryActivity
+    info:
+      path: Sources/iOS/LiveActivity/Info.plist
+      properties:
+        CFBundleDisplayName: SalaryTicker
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.steve.salaryticker.mobile.liveactivity
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         CODE_SIGNING_REQUIRED: NO
