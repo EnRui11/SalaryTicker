@@ -18,7 +18,7 @@ Ia berada di bar menu sebagai satu nombor dan satu gelang kemajuan kecil. Klik u
 
 ## Pemasangan
 
-Memerlukan **macOS 14 atau lebih baharu** dan rantaian alat Swift 6. Dibina dan diuji dengan Swift 6.3; keluaran Swift 6 yang lebih awal belum diuji.
+Memerlukan **macOS 26 atau lebih baharu** dan rantaian alat Swift 6. Dibina dan diuji dengan Swift 6.3; keluaran Swift 6 yang lebih awal belum diuji.
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
@@ -138,9 +138,10 @@ Jeda manual pernah wujud sekejap. Ia satu-satunya keadaan terkumpul dalam aplika
 ## Pembangunan
 
 ```bash
-swift build          # build
-swift test           # 210 tests
-./Packaging/build_app.sh    # assemble the .app without installing
+make                 # list every target
+make test            # 268 tests
+make install         # the Mac app, into /Applications
+make run             # the iPhone app, on the simulator
 ```
 
 Clean Architecture yang mengutamakan ciri, satu target SwiftPM bagi setiap lapisan, jadi arah kebergantungan dikuatkuasakan oleh pengkompil dan bukan oleh disiplin. Keputusan reka bentuk, invarian model wang, dan pepijat yang membentuknya dihuraikan dalam [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

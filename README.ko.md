@@ -18,7 +18,7 @@
 
 ## 설치
 
-**macOS 14 이상**과 Swift 6 툴체인이 필요합니다. Swift 6.3으로 빌드하고 테스트했으며, 그 이전 Swift 6 릴리스는 검증하지 않았습니다.
+**macOS 26 이상**과 Swift 6 툴체인이 필요합니다. Swift 6.3으로 빌드하고 테스트했으며, 그 이전 Swift 6 릴리스는 검증하지 않았습니다.
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
@@ -138,9 +138,10 @@ this month        = days already earned × daily pay + today
 ## 개발
 
 ```bash
-swift build          # build
-swift test           # 210 tests
-./Packaging/build_app.sh    # assemble the .app without installing
+make                 # list every target
+make test            # 268 tests
+make install         # the Mac app, into /Applications
+make run             # the iPhone app, on the simulator
 ```
 
 기능 우선 클린 아키텍처이며, 레이어마다 SwiftPM 타깃을 하나씩 둡니다. 그래서 의존성 방향이 규율이 아니라 컴파일러로 강제됩니다. 설계 결정, 금액 모델의 불변식, 그리고 그것들을 만들어 낸 버그들은 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)에 정리해 두었습니다.

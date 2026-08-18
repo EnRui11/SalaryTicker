@@ -18,7 +18,7 @@
 
 ## インストール
 
-**macOS 14 以降**と Swift 6 ツールチェーンが必要。ビルドとテストは Swift 6.3 で行っている。それより前の Swift 6 リリースは未検証。
+**macOS 26 以降**と Swift 6 ツールチェーンが必要。ビルドとテストは Swift 6.3 で行っている。それより前の Swift 6 リリースは未検証。
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
@@ -138,9 +138,10 @@ this month        = days already earned × daily pay + today
 ## 開発
 
 ```bash
-swift build          # build
-swift test           # 210 tests
-./Packaging/build_app.sh    # assemble the .app without installing
+make                 # list every target
+make test            # 268 tests
+make install         # the Mac app, into /Applications
+make run             # the iPhone app, on the simulator
 ```
 
 フィーチャー優先のクリーンアーキテクチャで、レイヤーごとに SwiftPM ターゲットを1つ。依存の向きは規律ではなくコンパイラが強制する。設計上の判断、金額モデルの不変条件、そしてそれらを形づくったバグについては [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) に書いてある。

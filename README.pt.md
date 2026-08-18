@@ -18,7 +18,7 @@ Ele fica na barra de menus como um número e um pequeno anel de progresso. Cliqu
 
 ## Instalação
 
-Requer **macOS 14 ou posterior** e um toolchain Swift 6. Compilado e testado com o Swift 6.3; versões anteriores do Swift 6 não foram testadas.
+Requer **macOS 26 ou posterior** e um toolchain Swift 6. Compilado e testado com o Swift 6.3; versões anteriores do Swift 6 não foram testadas.
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
@@ -138,9 +138,10 @@ Uma pausa manual existiu por pouco tempo. Era o único estado acumulado do app e
 ## Desenvolvimento
 
 ```bash
-swift build          # build
-swift test           # 210 tests
-./Packaging/build_app.sh    # assemble the .app without installing
+make                 # list every target
+make test            # 268 tests
+make install         # the Mac app, into /Applications
+make run             # the iPhone app, on the simulator
 ```
 
 Clean Architecture orientada a funcionalidades, um target SwiftPM por camada, para que a direção das dependências seja imposta pelo compilador, e não pela disciplina. As decisões de projeto, os invariantes do modelo de dinheiro e os bugs que os moldaram estão descritos em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

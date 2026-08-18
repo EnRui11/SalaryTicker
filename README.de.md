@@ -18,7 +18,7 @@ Sie sitzt als Zahl und kleiner Fortschrittsring in der Menüleiste. Ein Klick ze
 
 ## Installation
 
-Erfordert **macOS 14 oder neuer** und eine Swift-6-Toolchain. Gebaut und getestet mit Swift 6.3; frühere Swift-6-Versionen sind ungetestet.
+Erfordert **macOS 26 oder neuer** und eine Swift-6-Toolchain. Gebaut und getestet mit Swift 6.3; frühere Swift-6-Versionen sind ungetestet.
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
@@ -138,9 +138,10 @@ Eine manuelle Pause gab es kurzzeitig. Sie war der einzige akkumulierte Zustand 
 ## Entwicklung
 
 ```bash
-swift build          # build
-swift test           # 210 tests
-./Packaging/build_app.sh    # assemble the .app without installing
+make                 # list every target
+make test            # 268 tests
+make install         # the Mac app, into /Applications
+make run             # the iPhone app, on the simulator
 ```
 
 Feature-first Clean Architecture, ein SwiftPM-Target pro Schicht, damit die Abhängigkeitsrichtung vom Compiler erzwungen wird und nicht von Disziplin. Die Entwurfsentscheidungen, die Invarianten des Geldmodells und die Bugs, die sie geprägt haben, stehen in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

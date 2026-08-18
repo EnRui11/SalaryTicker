@@ -18,7 +18,7 @@ It sits in the menu bar as a number and a small progress ring. Click it for the 
 
 ## Install
 
-Requires **macOS 14 or later** and a Swift 6 toolchain. Built and tested against Swift 6.3; earlier Swift 6 releases are untested.
+Requires **macOS 26 or later** and a Swift 6 toolchain. Built and tested against Swift 6.3; earlier Swift 6 releases are untested.
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
@@ -138,9 +138,10 @@ A manual pause did exist briefly. It was the only accumulated state in the app a
 ## Development
 
 ```bash
-swift build          # build
-swift test           # 210 tests
-./Packaging/build_app.sh    # assemble the .app without installing
+make                 # list every target
+make test            # 268 tests
+make install         # the Mac app, into /Applications
+make run             # the iPhone app, on the simulator
 ```
 
 Feature-first Clean Architecture, one SwiftPM target per layer, so the dependency direction is enforced by the compiler rather than by discipline. The design decisions, the money model's invariants, and the bugs that shaped them are written up in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

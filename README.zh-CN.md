@@ -18,7 +18,7 @@
 
 ## 安装
 
-需要 **macOS 14 或更高版本**，以及一套 Swift 6 工具链。构建和测试都基于 Swift 6.3；更早的 Swift 6 版本没有测过。
+需要 **macOS 26 或更高版本**，以及一套 Swift 6 工具链。构建和测试都基于 Swift 6.3；更早的 Swift 6 版本没有测过。
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
@@ -138,9 +138,10 @@ this month        = days already earned × daily pay + today
 ## 开发
 
 ```bash
-swift build          # build
-swift test           # 210 tests
-./Packaging/build_app.sh    # assemble the .app without installing
+make                 # list every target
+make test            # 268 tests
+make install         # the Mac app, into /Applications
+make run             # the iPhone app, on the simulator
 ```
 
 Feature-first 的 Clean Architecture，每一层一个 SwiftPM target，所以依赖方向是由编译器强制的，而不是靠自觉。设计上的取舍、金额模型的不变式，以及塑造了它们的那些 bug，都写在 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 里。
