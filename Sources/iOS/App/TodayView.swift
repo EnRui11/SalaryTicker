@@ -3,6 +3,7 @@ import SalaryDomain
 import SalaryShared
 import SalaryPresentation
 import SalaryGlass
+import SalaryActivity
 
 /// The screen you actually look at.
 ///
@@ -13,6 +14,7 @@ import SalaryGlass
 struct TodayView: View {
     @Bindable var viewModel: TickerViewModel
     @State private var showingSettings = false
+    @State private var composingGoal = false
 
     private var config: SalaryConfig { viewModel.config }
     private var text: Strings { Strings(config.language) }
@@ -57,6 +59,15 @@ struct TodayView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 MobileSettingsView(viewModel: viewModel)
+            }
+            // A tap on the Dynamic Island asks for the number, so it gets the number --
+            // not the settings sheet that happened to be open when the app was last put
+            // down. iOS will not let a tap do anything but open the app; this is the most
+            // it can be told about where to arrive.
+            .onOpenURL { url in
+                guard url.host == SalaryActivityLink.host else { return }
+                showingSettings = false
+                composingGoal = false
             }
         }
     }
@@ -146,17 +157,35 @@ struct TodayView: View {
 
     // MARK: Goals
 
-    @ViewBuilder private var goals: some View {
-        if viewModel.pinnedGoals.isEmpty {
-            Card(title: text.sectionGoals) {
-                EmptyHint(icon: "target", message: text.noGoalsYet)
-            }
-        } else {
-            Card(title: text.sectionGoals) {
+    /// Goals are created here rather than in Settings, because this is the screen that
+    /// shows them. One card either way, so the sheet has a single place to hang off — two
+    /// `sheet(isPresented:)` modifiers in one chain is the SwiftUI arrangement where one of
+    /// them quietly never presents, and the settings sheet is already on the stack above.
+    private var goals: some View {
+        Card(title: text.sectionGoals) {
+            if viewModel.pinnedGoals.isEmpty {
+                EmptyHint(
+                    icon: "target",
+                    message: text.noGoalsYet,
+                    action: (text.addGoal, { composingGoal = true })
+                )
+            } else {
                 ForEach(Array(viewModel.pinnedGoals.enumerated()), id: \.element.goal.id) { index, entry in
                     if index > 0 { RowDivider() }
                     goalRow(index: index, entry.goal, entry.projection)
                 }
+                RowDivider()
+                Button {
+                    composingGoal = true
+                } label: {
+                    Label(text.addGoal, systemImage: "plus")
+                }
+                .padding(.vertical, 11)
+            }
+        }
+        .sheet(isPresented: $composingGoal) {
+            GoalComposerSheet(text: text) { name, amount in
+                viewModel.addGoal(name: name, amount: amount)
             }
         }
     }

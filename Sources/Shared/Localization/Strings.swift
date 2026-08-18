@@ -384,6 +384,51 @@ public struct Strings: Sendable {
           ms: "Sembunyikan jumlah pada bar menu")
     }
 
+    // MARK: Dynamic Island
+
+    /// Apple's own name for it, and localised the way Apple localises it: translated where
+    /// they translate it, left alone where they do not.
+    public var dynamicIsland: String {
+        t(en: "Dynamic Island", zh: "灵动岛", ja: "ダイナミックアイランド",
+          ko: "다이나믹 아일랜드", es: "Dynamic Island", fr: "Dynamic Island",
+          de: "Dynamic Island", pt: "Dynamic Island", ms: "Dynamic Island")
+    }
+
+    /// Says what it shows and, more usefully, what it cannot: the clock keeps moving on its
+    /// own because iOS animates it, and the figure stops the moment the app leaves the
+    /// front. Better to say so than to let a stalled number look like a broken one.
+    public var dynamicIslandCaption: String {
+        t(en: "Shows today's earnings on the island and the lock screen. The clock keeps running on its own; the amount is from the last time the app was open.",
+          zh: "在灵动岛和锁屏上显示今天赚到的钱。时间会自己走，金额停在最后一次打开应用的时候。",
+          ja: "その日の収入をダイナミックアイランドとロック画面に表示する。時間は自動で進み、金額は最後にアプリを開いたときのもの。",
+          ko: "오늘 번 금액을 다이나믹 아일랜드와 잠금 화면에 표시합니다. 시간은 알아서 흘러가고, 금액은 앱을 마지막으로 열었을 때 기준입니다.",
+          es: "Muestra lo ganado hoy en la isla y en la pantalla de bloqueo. El reloj sigue solo; el importe es del último momento en que la app estuvo abierta.",
+          fr: "Affiche les gains du jour sur l'île et sur l'écran verrouillé. L'horloge avance toute seule ; le montant date de la dernière ouverture de l'app.",
+          de: "Zeigt den heutigen Verdienst auf der Insel und dem Sperrbildschirm. Die Uhr läuft von selbst weiter; der Betrag stammt vom letzten Mal, als die App offen war.",
+          pt: "Mostra o ganho de hoje na ilha e no ecrã bloqueado. O relógio continua sozinho; o valor é da última vez que a app esteve aberta.",
+          ms: "Menunjukkan pendapatan hari ini pada pulau dan skrin kunci. Jam terus berjalan sendiri; jumlahnya dari kali terakhir apl dibuka.")
+    }
+
+    public var openSystemSettings: String {
+        t(en: "Open Settings", zh: "打开「设置」", ja: "設定を開く", ko: "설정 열기",
+          es: "Abrir Ajustes", fr: "Ouvrir Réglages", de: "Einstellungen öffnen",
+          pt: "Abrir Ajustes", ms: "Buka Tetapan")
+    }
+
+    /// The switch is off and not because of anything in this app. A control that silently
+    /// does nothing is worse than one that says who is stopping it.
+    public var dynamicIslandUnavailable: String {
+        t(en: "iOS has Live Activities turned off for SalaryTicker. Turn them back on in the Settings app, under SalaryTicker.",
+          zh: "iOS 关闭了 SalaryTicker 的实时活动。到「设置」里的 SalaryTicker 重新打开。",
+          ja: "iOS 側で SalaryTicker のライブアクティビティがオフになっている。「設定」の SalaryTicker から戻せる。",
+          ko: "iOS에서 SalaryTicker의 라이브 액티비티가 꺼져 있습니다. 설정 앱의 SalaryTicker에서 다시 켜세요.",
+          es: "iOS tiene las Actividades en Vivo desactivadas para SalaryTicker. Vuelve a activarlas en Ajustes, dentro de SalaryTicker.",
+          fr: "iOS a désactivé les activités en direct pour SalaryTicker. Réactivez-les dans Réglages, sous SalaryTicker.",
+          de: "iOS hat Live-Aktivitäten für SalaryTicker deaktiviert. In den Einstellungen unter SalaryTicker wieder einschalten.",
+          pt: "O iOS tem as Atividades Ao Vivo desativadas para o SalaryTicker. Volte a ativá-las nos Ajustes, em SalaryTicker.",
+          ms: "iOS mematikan Aktiviti Langsung untuk SalaryTicker. Hidupkan semula dalam Tetapan, di bawah SalaryTicker.")
+    }
+
     /// The panel's own one-click version of the setting above.
     public var hideAmountAction: String {
         t(en: "Hide amount", zh: "隐藏金额", ja: "金額を隠す", ko: "금액 숨기기",
@@ -463,6 +508,27 @@ public struct Strings: Sendable {
         t(en: "Add goal", zh: "添加目标", ja: "目標を追加", ko: "목표 추가",
           es: "Añadir objetivo", fr: "Ajouter un objectif", de: "Ziel hinzufügen",
           pt: "Adicionar meta", ms: "Tambah sasaran")
+    }
+
+    /// Title of the sheet that collects a goal before it exists.
+    public var newGoal: String {
+        t(en: "New goal", zh: "新目标", ja: "新しい目標", ko: "새 목표",
+          es: "Nuevo objetivo", fr: "Nouvel objectif", de: "Neues Ziel",
+          pt: "Nova meta", ms: "Sasaran baharu")
+    }
+
+    /// The settings list no longer adds goals, so its empty state says where they come
+    /// from instead of inviting a tap that is not there any more.
+    public var goalsAddedFromMain: String {
+        t(en: "Nothing on the list yet. Goals are added from the main screen; this is where you edit and reorder them.",
+          zh: "还没有目标。目标在主界面添加，这里用来编辑和排序。",
+          ja: "まだ目標がない。目標はメイン画面から追加する。ここは編集と並べ替えのための場所。",
+          ko: "아직 목표가 없습니다. 목표는 메인 화면에서 추가하고, 여기서는 수정하고 순서를 바꿉니다.",
+          es: "Todavía no hay nada. Los objetivos se añaden desde la pantalla principal; aquí se editan y se reordenan.",
+          fr: "Rien pour l'instant. Les objectifs s'ajoutent depuis l'écran principal ; ici on les modifie et on les réordonne.",
+          de: "Noch nichts da. Ziele werden auf dem Hauptbildschirm angelegt; hier werden sie bearbeitet und sortiert.",
+          pt: "Ainda não há nada. As metas são adicionadas no ecrã principal; aqui edita-as e reordena-as.",
+          ms: "Belum ada apa-apa. Sasaran ditambah dari skrin utama; di sini anda menyuntingnya dan menyusun semula.")
     }
 
     public var showInPanel: String {

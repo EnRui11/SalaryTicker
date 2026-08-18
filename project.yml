@@ -71,10 +71,9 @@ targets:
         CODE_SIGN_IDENTITY: ""
         CODE_SIGNING_ALLOWED: NO
 
-  # The watch app is independent: it does not need the phone to be installed, and it holds
-  # its own settings. Getting a configuration onto it is still the open question -- a watch
-  # cannot scan a QR code, so the answer is WatchConnectivity from the phone, and that is
-  # not built yet.
+  # The watch app is a companion, not a standalone: it ships inside the phone app (see the
+  # embed above) and holds no settings of its own. A watch cannot scan a QR code, so the
+  # phone is the only way a configuration reaches it, over WatchConnectivity.
   SalaryTickerWatch:
     type: application
     platform: watchOS

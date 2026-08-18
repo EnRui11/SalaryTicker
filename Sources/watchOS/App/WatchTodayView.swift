@@ -56,7 +56,7 @@ struct WatchTodayView: View {
                 .minimumScaleFactor(0.7)
 
             ProgressView(value: clamped(earnings.progress))
-                .tint(.accentColor)
+                .tint(.blue)
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 8)
@@ -84,7 +84,7 @@ struct WatchTodayView: View {
                 Text("\(Int((projection.progress * 100).rounded()))%")
                     .font(.caption2).monospacedDigit().foregroundStyle(.secondary)
             }
-            ProgressView(value: clamped(projection.progress)).tint(.accentColor)
+            ProgressView(value: clamped(projection.progress)).tint(.blue)
         }
     }
 

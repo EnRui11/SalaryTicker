@@ -1,8 +1,10 @@
 import SwiftUI
+import UIKit
 import SalaryDomain
 import SalaryShared
 import SalaryPresentation
 import SalaryGlass
+import SalarySync
 
 /// Everything the Mac can set, on a phone.
 ///
@@ -13,8 +15,13 @@ import SalaryGlass
 struct MobileSettingsView: View {
     @Bindable var viewModel: TickerViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
     @State private var goalPendingDeletion: SavingsGoal?
+    /// Read once when the screen appears rather than on every redraw. iOS can revoke this
+    /// while the app is in the background, so the answer is refreshed on the way in and not
+    /// treated as a constant.
+    @State private var systemAllowsLiveActivities = true
 
     private var config: SalaryConfig { viewModel.config }
     private var text: Strings { Strings(config.language) }
@@ -147,11 +154,7 @@ struct MobileSettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Card(title: text.sectionGoals) {
                 if config.goals.isEmpty {
-                    EmptyHint(
-                        icon: "target",
-                        message: text.noGoalsYet,
-                        action: (text.addGoal, { viewModel.addGoal() })
-                    )
+                    EmptyHint(icon: "target", message: text.goalsAddedFromMain)
                 } else {
                     ForEach(Array($viewModel.config.goals.enumerated()), id: \.element.id) { index, $goal in
                         if index > 0 { RowDivider() }
@@ -167,13 +170,6 @@ struct MobileSettingsView: View {
                             onDelete: { goalPendingDeletion = goal }
                         )
                     }
-                    RowDivider()
-                    Button {
-                        viewModel.addGoal()
-                    } label: {
-                        Label(text.addGoal, systemImage: "plus")
-                    }
-                    .padding(.vertical, 11)
                 }
             }
             CardCaption(text: text.goalsPriorityCaption)
@@ -183,26 +179,54 @@ struct MobileSettingsView: View {
     // MARK: Display
 
     private var display: some View {
-        Card(title: text.sectionDisplay) {
-            LabeledRow(label: text.currencySymbol) {
-                TextField("", text: $viewModel.config.currencySymbol)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 70)
-            }
-            RowDivider()
-            LabeledRow(label: text.decimals) {
-                Stepper("\(config.fractionDigits)", value: $viewModel.config.fractionDigits, in: 0...6)
-                    .fixedSize()
-            }
-            RowDivider()
-            LabeledRow(label: text.languageLabel) {
-                Picker("", selection: $viewModel.config.language) {
-                    ForEach(AppLanguage.allCases, id: \.self) { Text($0.displayName).tag($0) }
+        VStack(alignment: .leading, spacing: 8) {
+            Card(title: text.sectionDisplay) {
+                LabeledRow(label: text.currencySymbol) {
+                    TextField("", text: $viewModel.config.currencySymbol)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 70)
                 }
-                .labelsHidden()
-                .pickerStyle(.menu)
+                RowDivider()
+                LabeledRow(label: text.decimals) {
+                    Stepper(
+                        "\(config.fractionDigits)",
+                        value: $viewModel.config.fractionDigits, in: 0...6
+                    )
+                    .fixedSize()
+                }
+                RowDivider()
+                LabeledRow(label: text.languageLabel) {
+                    Picker("", selection: $viewModel.config.language) {
+                        ForEach(AppLanguage.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                }
+                RowDivider()
+                Toggle(text.dynamicIsland, isOn: $viewModel.config.liveActivityEnabled)
+                    .padding(.vertical, 8)
+            }
+            // The switch stays usable when iOS has said no, rather than greying out. What
+            // it stores is the user's answer about this app, and that is worth keeping even
+            // while something else overrides it — disabling the row would throw the answer
+            // away and leave nothing to honour when the system switch comes back on. What
+            // the row must not do is stay silent about who is overriding it.
+            if systemAllowsLiveActivities {
+                CardCaption(text: text.dynamicIslandCaption)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    CardCaption(text: text.dynamicIslandUnavailable)
+                    Button(text.openSystemSettings) {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            openURL(url)
+                        }
+                    }
+                    .font(.footnote)
+                    .padding(.horizontal, 4)
+                }
             }
         }
+        .onAppear { systemAllowsLiveActivities = LiveActivityController.isSupported }
     }
 
     // MARK: Pieces

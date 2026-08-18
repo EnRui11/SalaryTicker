@@ -69,6 +69,16 @@ public struct SalaryConfig: Equatable, Sendable {
     /// It never hides *everything*: the ring, or the glyph standing in for it, has to stay
     /// or there would be nothing left to click to bring the number back.
     public var menuBarHidesAmount: Bool
+    /// Show today's earnings on the iPhone's Dynamic Island and lock screen.
+    ///
+    /// The one setting here that the device receiving a configuration acts on and the
+    /// device sending it never sets: a Mac has no Dynamic Island, so this value in a
+    /// configuration that arrives by QR code is not an opinion, it is a default.
+    /// `TickerViewModel.apply(_:)` keeps the local answer rather than taking that one.
+    ///
+    /// It can only ever subtract. iOS has its own switch for Live Activities and this is
+    /// ANDed with it, so turning this on cannot overrule a system that has said no.
+    public var liveActivityEnabled: Bool
     /// Keep counting after clock-off.
     ///
     /// The app cannot know when you actually stopped, so overtime is capped rather than
@@ -105,6 +115,7 @@ public struct SalaryConfig: Equatable, Sendable {
         menuBarShowsCurrencySymbol: Bool = true,
         menuBarIconOnlyWhenIdle: Bool = false,
         menuBarHidesAmount: Bool = false,
+        liveActivityEnabled: Bool = true,
         overtimeEnabled: Bool = false,
         overtimeMultiplier: Double = 1.0,
         overtimeMaxHours: Int = 4,
@@ -129,6 +140,7 @@ public struct SalaryConfig: Equatable, Sendable {
         self.menuBarShowsCurrencySymbol = menuBarShowsCurrencySymbol
         self.menuBarIconOnlyWhenIdle = menuBarIconOnlyWhenIdle
         self.menuBarHidesAmount = menuBarHidesAmount
+        self.liveActivityEnabled = liveActivityEnabled
         self.overtimeEnabled = overtimeEnabled
         self.overtimeMultiplier = overtimeMultiplier
         self.overtimeMaxHours = overtimeMaxHours

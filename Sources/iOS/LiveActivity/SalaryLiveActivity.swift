@@ -20,6 +20,7 @@ struct SalaryLiveActivity: Widget {
             lockScreen(context.state)
                 .activityBackgroundTint(.black.opacity(0.35))
                 .activitySystemActionForegroundColor(.white)
+                .widgetURL(SalaryActivityLink.url)
         } dynamicIsland: { context in
             let state = context.state
             return DynamicIsland {
@@ -51,11 +52,11 @@ struct SalaryLiveActivity: Widget {
                     } currentValueLabel: {
                         EmptyView()
                     }
-                    .tint(.green)
+                    .tint(.blue)
                 }
             } compactLeading: {
                 Image(systemName: state.isRunning ? "banknote" : "moon.zzz")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(.blue)
             } compactTrailing: {
                 if state.isRunning {
                     ProgressView(timerInterval: state.animatableRange, countsDown: false) {
@@ -64,13 +65,17 @@ struct SalaryLiveActivity: Widget {
                         EmptyView()
                     }
                     .progressViewStyle(.circular)
-                    .tint(.green)
+                    .tint(.blue)
                 } else {
                     Text(state.shiftStart, style: .time).monospacedDigit()
                 }
             } minimal: {
-                Image(systemName: "banknote").foregroundStyle(.green)
+                Image(systemName: "banknote").foregroundStyle(.blue)
             }
+            // Where a tap lands. It still opens the app -- iOS gives no way to make a tap
+            // do anything else, and the expanded preview is touch-and-hold -- but without
+            // this it opens onto whatever screen the app was last left on.
+            .widgetURL(SalaryActivityLink.url)
         }
     }
 
@@ -96,7 +101,7 @@ struct SalaryLiveActivity: Widget {
             } currentValueLabel: {
                 EmptyView()
             }
-            .tint(.green)
+            .tint(.blue)
 
             // Said plainly rather than implied. The figure above stopped moving when the
             // app did, and a reader deserves to know which.

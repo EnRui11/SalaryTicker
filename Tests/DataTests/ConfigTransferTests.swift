@@ -27,6 +27,7 @@ private func sample() -> SalaryConfig {
         SavingsGoal(name: "Rope", amount: 800, isPinned: false,
                     startedAt: Date(timeIntervalSince1970: 1_781_000_000)),
     ]
+    config.liveActivityEnabled = false
     return config
 }
 

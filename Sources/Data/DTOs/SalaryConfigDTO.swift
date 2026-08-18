@@ -67,6 +67,7 @@ struct SalaryConfigDTO: Codable, Equatable {
     var menuBarShowsCurrencySymbol: Bool
     var menuBarIconOnlyWhenIdle: Bool
     var menuBarHidesAmount: Bool
+    var liveActivityEnabled: Bool
     var overtimeEnabled: Bool
     var overtimeMultiplier: Double
     var overtimeMaxHours: Int
@@ -111,6 +112,8 @@ struct SalaryConfigDTO: Codable, Equatable {
             ?? fallback.menuBarIconOnlyWhenIdle
         menuBarHidesAmount = container.lenient(Bool.self, .menuBarHidesAmount)
             ?? fallback.menuBarHidesAmount
+        liveActivityEnabled = container.lenient(Bool.self, .liveActivityEnabled)
+            ?? fallback.liveActivityEnabled
         overtimeEnabled = container.lenient(Bool.self, .overtimeEnabled) ?? fallback.overtimeEnabled
         overtimeMultiplier = container.lenient(Double.self, .overtimeMultiplier)
             ?? fallback.overtimeMultiplier

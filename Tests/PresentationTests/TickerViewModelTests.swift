@@ -270,6 +270,69 @@ private func rig(config: SalaryConfig = liveConfig(), start: Date) -> Rig {
     #expect(rig.viewModel.pinnedGoals.isEmpty)
 }
 
+@Test @MainActor func aGoalCreatedFromTheMainScreenIsVisibleImmediately() {
+    // The whole reason the main screen asks for the details before creating anything: it
+    // shows only goals that are `isValid`, so a blank one would be written to disk and
+    // then displayed nowhere, and the button would look broken.
+    let rig = rig(start: at(16, 0, day: 5))
+    rig.viewModel.addGoal(name: "Bike", amount: 500)
+
+    #expect(rig.viewModel.pinnedGoals.count == 1)
+    #expect(rig.viewModel.pinnedGoals[0].goal.name == "Bike")
+    #expect(rig.settings.stored.goals.count == 1)
+}
+
+@Test @MainActor func aGoalCreatedFromTheMainScreenIsStampedWithTheAppsClock() {
+    // Not the system clock. `SavingsGoal.init` defaults `startedAt` to `Date()`, so a goal
+    // built by the sheet instead of by the view model would be stamped with wall time and
+    // step around the injected clock -- and would arrive already part paid for.
+    let rig = rig(start: at(16, 0, day: 5))
+    rig.viewModel.addGoal(name: "Bike", amount: 500)
+    #expect(rig.viewModel.pinnedGoals[0].projection.earned == 0)
+
+    rig.tick(to: at(16, 30, day: 5))
+    #expect(abs(rig.viewModel.pinnedGoals[0].projection.earned - 1_800 * augustRate) < 1e-6)
+}
+
+// MARK: - The Dynamic Island switch
+
+@Test @MainActor func theDynamicIslandIsOnUntilItIsTurnedOff() {
+    let rig = rig(start: at(16, 0, day: 5))
+    #expect(rig.viewModel.config.liveActivityEnabled)
+
+    rig.viewModel.config.liveActivityEnabled = false
+    rig.viewModel.configChanged()
+    #expect(rig.settings.stored.liveActivityEnabled == false)
+}
+
+@Test @MainActor func importingAConfigDoesNotTouchTheDynamicIslandSwitch() {
+    // A Mac has no Dynamic Island, so its copy of this flag is not an opinion -- it is
+    // whatever the default happened to be. Taking it would switch the island back on
+    // behind the user every time they scanned the QR code to update their hours.
+    let rig = rig(start: at(16, 0, day: 5))
+    rig.viewModel.config.liveActivityEnabled = false
+    rig.viewModel.configChanged()
+
+    var arriving = SalaryConfig.default
+    arriving.monthlySalary = 7_777
+    arriving.liveActivityEnabled = true
+    rig.viewModel.apply(arriving)
+
+    #expect(rig.viewModel.config.monthlySalary == 7_777, "the salary is what the import is for")
+    #expect(rig.viewModel.config.liveActivityEnabled == false, "the island switch is this device's")
+    #expect(rig.settings.stored.liveActivityEnabled == false)
+}
+
+@Test @MainActor func importingCanLeaveTheDynamicIslandOnToo() {
+    // The mirror of the above, so the test cannot pass by the flag simply being stuck.
+    let rig = rig(start: at(16, 0, day: 5))
+    var arriving = SalaryConfig.default
+    arriving.liveActivityEnabled = false
+    rig.viewModel.apply(arriving)
+
+    #expect(rig.viewModel.config.liveActivityEnabled)
+}
+
 // MARK: - Launch at login
 
 @Test @MainActor func theStoredIntentIsWhatGetsRegisteredAtStartup() {

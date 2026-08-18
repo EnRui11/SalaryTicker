@@ -220,6 +220,23 @@ public final class TickerViewModel {
         configChanged()
     }
 
+    /// Adds a goal that is already finished being described.
+    ///
+    /// The no-argument version appends a blank for the user to fill in, which works on a
+    /// surface that shows every goal including the unfinished ones. The phone's main screen
+    /// is not that surface -- it shows only goals that are `isValid` -- so a blank appended
+    /// there is written to disk and then displayed nowhere, and tapping the button again
+    /// silently writes another. This one collects the details first and appends once.
+    ///
+    /// `startedAt` is stamped here rather than by the caller so it comes from the injected
+    /// clock: a goal must not be able to claim work done before it existed.
+    public func addGoal(name: String, amount: Double, isPinned: Bool = true) {
+        config.goals.append(
+            SavingsGoal(name: name, amount: amount, isPinned: isPinned, startedAt: clock.now)
+        )
+        configChanged()
+    }
+
     public func removeGoal(_ id: SavingsGoal.ID) {
         config.goals.removeAll { $0.id == id }
         configChanged()
@@ -289,8 +306,17 @@ public final class TickerViewModel {
         container.configLink.config(from: url)
     }
 
+    /// Takes an arriving configuration, except for the parts that are about this device.
+    ///
+    /// Importing replaces everything, which is the point -- the salary and the schedule are
+    /// what was worth carrying across. `liveActivityEnabled` is the one field that breaks
+    /// that rule, because the device that sent it has no Dynamic Island to have an opinion
+    /// about: a Mac's copy of this flag is whatever the default happened to be, and taking
+    /// it would silently switch the phone's island back on after the user turned it off.
     public func apply(_ imported: SalaryConfig) {
-        config = imported
+        var incoming = imported
+        incoming.liveActivityEnabled = config.liveActivityEnabled
+        config = incoming
         configChanged()
     }
 

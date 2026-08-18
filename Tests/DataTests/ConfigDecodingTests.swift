@@ -292,3 +292,32 @@ private func repository(seededWith json: String? = nil, suite: String) -> UserDe
     let config = repository(seededWith: #"{"monthlySalary":5000}"#, suite: "test.prehide").load()
     #expect(config.menuBarHidesAmount == false)
 }
+
+// MARK: - The Dynamic Island switch
+
+@Test func theDynamicIslandSwitchSurvivesASaveAndLoadRoundTrip() {
+    let store = repository(suite: "test.island")
+    var original = SalaryConfig.default
+    original.liveActivityEnabled = false
+    store.save(original)
+    #expect(store.load().liveActivityEnabled == false)
+}
+
+@Test func aConfigFromBeforeTheDynamicIslandSwitchExistedKeepsTheIsland() {
+    // The island showed unconditionally before there was a switch, so the absence of the
+    // key has to read as "on". Defaulting the other way would silently take the feature
+    // away from everyone already using it, on the upgrade that added the setting.
+    let config = repository(seededWith: #"{"monthlySalary":5000}"#, suite: "test.preisland").load()
+    #expect(config.liveActivityEnabled)
+}
+
+@Test func aDynamicIslandSwitchStoredAsTheWrongTypeReadsAsAbsent() {
+    // The lenient decoder's whole job: a malformed value must not throw out of the
+    // enclosing config and reset the salary along with it.
+    let config = repository(
+        seededWith: #"{"monthlySalary":5000,"liveActivityEnabled":"false"}"#,
+        suite: "test.islandwrongtype"
+    ).load()
+    #expect(config.liveActivityEnabled)
+    #expect(config.monthlySalary == 5_000)
+}

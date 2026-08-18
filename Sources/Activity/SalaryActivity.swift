@@ -5,6 +5,22 @@ import Foundation
 import ActivityKit
 #endif
 
+/// Where a tap on the Dynamic Island goes.
+///
+/// iOS reserves the tap on a Live Activity for launching the app and gives no way to ask
+/// for anything else — the expanded preview is reached by touch-and-hold, and there is no
+/// API to open it in code. What a tap CAN be told is where to land, and without this it
+/// lands wherever the app happened to be left, which after a visit to Settings is a
+/// half-scrolled sheet rather than the number the island was showing.
+///
+/// Declared here because this module is the one both the app and the widget extension can
+/// see, so the two cannot drift into disagreeing about the address.
+public enum SalaryActivityLink {
+    public static let host = "today"
+    /// A literal that cannot fail to parse; the fallback exists only to avoid a `!`.
+    public static let url = URL(string: "salaryticker://\(host)") ?? URL(fileURLWithPath: "/")
+}
+
 /// What the Live Activity carries.
 ///
 /// Split the way the platform forces it to be split, which happens to be the honest split
