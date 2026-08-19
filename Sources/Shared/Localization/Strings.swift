@@ -169,7 +169,7 @@ public struct Strings: Sendable {
     public var settingsAction: String {
         t(en: "Settings…", zh: "设置…", ja: "設定…", ko: "설정…",
           es: "Ajustes…", fr: "Réglages…", de: "Einstellungen…",
-          pt: "Ajustes…", ms: "Tetapan…")
+          pt: "Definições…", ms: "Tetapan…")
     }
 
     public var quitAction: String {
@@ -356,7 +356,7 @@ public struct Strings: Sendable {
           es: "La app no sabe cuándo te fuiste de verdad, así que las horas extra se detienen en el límite y nunca pasan de medianoche.",
           fr: "L'app ignore l'heure réelle de votre départ : les heures sup s'arrêtent à la limite ci-dessus et ne dépassent jamais minuit.",
           de: "Die App weiß nicht, wann du tatsächlich gegangen bist — Überstunden stoppen beim Limit oben und laufen nie über Mitternacht.",
-          pt: "O app não sabe quando você realmente saiu, então a hora extra para no limite acima e nunca passa da meia-noite.",
+          pt: "A app não sabe quando saiu realmente, por isso a hora extra para no limite acima e nunca passa da meia-noite.",
           ms: "Aplikasi tidak tahu bila anda sebenarnya balik, jadi kerja lebih masa berhenti pada had di atas dan tidak melepasi tengah malam.")
     }
 
@@ -412,7 +412,7 @@ public struct Strings: Sendable {
     public var openSystemSettings: String {
         t(en: "Open Settings", zh: "打开「设置」", ja: "設定を開く", ko: "설정 열기",
           es: "Abrir Ajustes", fr: "Ouvrir Réglages", de: "Einstellungen öffnen",
-          pt: "Abrir Ajustes", ms: "Buka Tetapan")
+          pt: "Abrir Definições", ms: "Buka Tetapan")
     }
 
     /// The switch is off and not because of anything in this app. A control that silently
@@ -425,7 +425,7 @@ public struct Strings: Sendable {
           es: "iOS tiene las Actividades en Vivo desactivadas para SalaryTicker. Vuelve a activarlas en Ajustes, dentro de SalaryTicker.",
           fr: "iOS a désactivé les activités en direct pour SalaryTicker. Réactivez-les dans Réglages, sous SalaryTicker.",
           de: "iOS hat Live-Aktivitäten für SalaryTicker deaktiviert. In den Einstellungen unter SalaryTicker wieder einschalten.",
-          pt: "O iOS tem as Atividades Ao Vivo desativadas para o SalaryTicker. Volte a ativá-las nos Ajustes, em SalaryTicker.",
+          pt: "O iOS tem as Atividades Ao Vivo desativadas para o SalaryTicker. Volte a ativá-las nas Definições, em SalaryTicker.",
           ms: "iOS mematikan Aktiviti Langsung untuk SalaryTicker. Hidupkan semula dalam Tetapan, di bawah SalaryTicker.")
     }
 
@@ -727,7 +727,7 @@ public struct Strings: Sendable {
           es: "Un precio se convierte en días de trabajo y en la fecha en que el horario dice que lo tendrás. La fecha no se mueve mientras trabajas: solo cambiarla el horario la desplaza.",
           fr: "Un prix devient un nombre de jours de travail et la date à laquelle vos horaires disent que vous l'aurez. Cette date ne bouge pas tant que vous travaillez : seul un changement d'horaires la décale.",
           de: "Ein Preis wird zu Arbeitstagen und zu dem Datum, an dem dein Zeitplan sagt, dass du es hast. Das Datum bleibt stehen, solange du arbeitest — nur eine Änderung am Zeitplan verschiebt es.",
-          pt: "Um preço vira dias de trabalho e a data em que o seu horário diz que você o terá. A data não se move enquanto você trabalha — só mudar o horário a desloca.",
+          pt: "Um preço torna-se dias de trabalho e a data em que o seu horário diz que o terá. A data não se move enquanto trabalha — só mudar o horário a desloca.",
           ms: "Harga bertukar menjadi bilangan hari kerja, dan tarikh yang jadual anda kata anda akan memilikinya. Tarikh itu tidak bergerak selagi anda bekerja — hanya perubahan jadual menggesernya.")
     }
 
@@ -891,7 +891,7 @@ public struct Strings: Sendable {
           es: "Aprueba SalaryTicker en Ajustes del Sistema › General › Ítems de inicio para activarlo.",
           fr: "Autorisez SalaryTicker dans Réglages Système › Général › Ouverture pour terminer l'activation.",
           de: "Bestätige SalaryTicker in Systemeinstellungen › Allgemein › Anmeldeobjekte, um dies zu aktivieren.",
-          pt: "Aprove o SalaryTicker em Ajustes do Sistema › Geral › Itens de Início para concluir.",
+          pt: "Aprove o SalaryTicker em Definições do Sistema › Geral › Itens de Arranque para concluir.",
           ms: "Benarkan SalaryTicker dalam Tetapan Sistem › Umum › Item Log Masuk untuk mengaktifkannya.")
     }
 
