@@ -4,7 +4,7 @@
 [English](README.md) · **简体中文** · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português](README.pt.md) · [Bahasa Melayu](README.ms.md)
 <!-- language-bar -->
 
-一款 macOS 菜单栏应用，显示你今天已经赚到多少钱，每秒跳一次。
+你今天已经赚到多少钱，每秒跳一次 —— 在 Mac 的菜单栏里、在 iPhone 上、在 Apple Watch 上，还有在灵动岛上。
 
 <img src="docs/panel.png" width="360" alt="小窗口：今日已赚、背后的几项计薪费率、本月已累计，以及两个储蓄目标和它们各自的到手日期。">
 
@@ -14,25 +14,41 @@
 - **认得各种休假。** 公众假期、带薪休和无薪休落在不同的地方，而无薪休只动基本薪资，不动津贴。
 - **用工作量给东西标价。** 一个目标不只显示金额，还会显示它值多少个工作日，以及按作息推算的到手日期。
 - **九种语言**，任意货币符号，任意 IANA 时区。
-- **不用账号、不联网、不上报数据。** 一切都在你自己的 Mac 上，根据你填的设置算出来。
+- **不用账号、不联网、不上报数据。** 一切都在你自己的机器上，根据你填的设置算出来。
+- **四块屏幕，一套算法。** Mac、手机、手表和灵动岛读的是同一份领域层代码，所以它们不可能在「一秒值多少钱」这件事上各说各话。
 
 ## 安装
+
+### Mac 应用
 
 需要 **macOS 26 或更高版本**，以及一套 Swift 6 工具链。构建和测试都基于 Swift 6.3；更早的 Swift 6 版本没有测过。
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
 cd SalaryTicker
-./Packaging/build_app.sh install
+make install
 ```
 
-这条命令会构建 release 版二进制、从源文件生成应用图标、组装出 `SalaryTicker.app`、做一次 ad-hoc 签名，然后把它拷进 `/Applications` 并启动。去掉 `install` 参数，就只在当前目录里构建，不安装。
+这条命令会构建 release 版二进制、从源文件生成应用图标、组装出 `SalaryTicker.app`、做一次 ad-hoc 签名，然后把它拷进 `/Applications` 并启动。`make app` 做的是同样的事，只是不安装。
 
 没有什么隔离属性需要解除：二进制是你自己编译的，从来就没带上 Gatekeeper 要找的那个下载标记。签名是 ad-hoc 的，对本地构建的应用来说够用了，也让登录项有一个稳定的身份。
 
 要更新，拉一下代码再跑同一条命令 —— 它会替换已安装的那份并重新启动。你的设置存在 app 包之外，不会被碰到。
 
 卸载：在小窗口里点「退出」，删掉 `/Applications/SalaryTicker.app`；如果连设置也想清掉，就执行 `defaults delete com.steve.salaryticker`。
+
+### iPhone 和 Apple Watch
+
+需要 **iOS 26 / watchOS 26**、Xcode 26，以及 [xcodegen](https://github.com/yonaskolb/XcodeGen)（`brew install xcodegen`）。
+
+```bash
+make run      # the phone, on the iOS Simulator
+make watch    # the watch, on the paired watch simulator
+```
+
+目前只能跑模拟器：每个 target 都是关掉代码签名构建的。要放到真机上，得先在 Xcode 里加一个 Apple ID，而免费账号的 provisioning profile 七天就过期 —— 过期之后应用就打不开了，除非你重新构建一遍。
+
+在真机 iPhone 上，手表应用不是单独装的。它是**装在**手机应用里面一起发的，所以你装好手机应用之后，要么让「自动安装 App」保持开着，要么打开 iPhone 上的 **Watch** 应用，在「可用的 App」里点 SalaryTicker 旁边的「安装」。模拟器上没有这一整套机制，所以 `make watch` 是直接把它装到手表上的。
 
 ## 首次运行
 
@@ -101,6 +117,40 @@ cd SalaryTicker
 
 需要应用从 `/Applications` 里运行。存下来的是你的意愿本身：开关打开时，应用每次启动都会把自己注册一遍，而且从不注销 —— 因为菜单栏应用只要跑过一次，macOS 就会把它列进登录项，它给的答案两个方向都信不过。
 
+## 在手机和手表上
+
+和小窗口里一样的四个数字，顺序也一样 —— 两边都用的人，不该把同一个应用学两遍。
+
+<img src="docs/phone.png" width="300" alt="手机：今日已赚、背后的几项计薪费率、本月已累计，以及一个目标和它的到手日期。"> <img src="docs/watch.png" width="300" alt="手表：今日已赚、离下班还剩多久、本月已累计，以及第一个固定显示的目标。">
+
+### 把设置传过去
+
+在 Mac 上打开**设置 → 系统 → 发送到手机**，用手机摄像头对着那个二维码。所有东西都会跟着过去 —— 薪资、作息、工作日、休假、目标 —— 所以手机一上来就是你的数字，而不是默认值。
+
+这个码底下编码的是一个链接。导入这件事之所以能测，靠的正是这一点：模拟器没有摄像头，但可以直接把一个 URL 递给它。
+
+它里面装着你的薪资，所以它是一张图片，而不是一串你能复制走的文字。屏幕上的一个码，只会进到摄像头里，去不了别的地方；而它一旦变成分享面板里的一段文本，就有机会落到本来完全不该去的地方。
+
+### 手机
+
+一整屏往下滚，而不是 Mac 上的标签页 —— 手机反正都要滚，而标签页只会把你想改的那一项，藏在「它到底在哪个标签页里」的猜测后面。
+
+**目标是在这里加的**，就在主界面上，弹出的面板会先问名字和价格，然后才创建。改名、改价、调顺序和删除，都在设置里。
+
+### 手表
+
+手表应用自己不存设置，也没给你输入的地方 —— 手表扫不了二维码。它等手机推过来，而手机每改一次设置就把最新的发过去。所以手机应用至少得打开过一次，否则手表上没有东西可显示。表盘上也有一个复杂功能。
+
+### 灵动岛和锁屏
+
+在**设置 → 显示 → 灵动岛**里打开，不想让工资出现在锁屏上的时候，也在那里关掉。iOS 自己有一个实时活动的开关；这一个只能在它的基础上做减法。
+
+那上面会动的东西，是在没有任何代码运行的情况下动起来的。iOS 会在一个固定的日期区间里，自己把距离下班的倒计时和进度条动画出来，所以在应用最后一次打开的好几个小时之后，这两样仍然是活的、准的。
+
+**金额不会动**，也不假装会动。要刷新它，得让应用在前台，或者有一台推送服务器，而这里两样都没有 —— 所以它是作为一个数字显示的，旁边印着这个数字是什么时候取的。一个悄悄停住的跳数，比一个明说自己停在哪一刻的更糟。
+
+长按灵动岛可以展开看。**点一下则是打开应用**：iOS 把这一下留给了它自己，没有留出别的可能。
+
 ## 这个数字是怎么算出来的
 
 ```
@@ -134,14 +184,16 @@ this month        = days already earned × daily pay + today
 - **不算税、EPF 或 SOCSO。** 所有数字都是税前的。
 - **没有历史记录。** 本月已累计是从这个月的作息推算出来的，不是从一份实际出勤的记录里来的。改薪资或作息，会把当月已经过去的那些天重新定价。
 - **只有一套作息。** 不是按周重复的模式 —— 隔周上的周六、轮班 —— 只能靠手动标出例外来表达。
+- **iOS 上只有模拟器。** 这里没有任何东西是为真机签过名的，而免费 Apple 账号的 profile 只管七天，所以你真正随身带着的手机和手表，每周都得重新部署一次。
 
 ## 开发
 
 ```bash
 make                 # list every target
-make test            # 268 tests
+make test            # 276 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
+make watch           # the watch app, on the paired watch simulator
 ```
 
 Feature-first 的 Clean Architecture，每一层一个 SwiftPM target，所以依赖方向是由编译器强制的，而不是靠自觉。设计上的取舍、金额模型的不变式，以及塑造了它们的那些 bug，都写在 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 里。

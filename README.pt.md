@@ -4,7 +4,7 @@
 [English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · **Português** · [Bahasa Melayu](README.ms.md)
 <!-- language-bar -->
 
-Um app de barra de menus para macOS que mostra quanto você já ganhou hoje, contando a cada segundo.
+Quanto você já ganhou hoje, contando a cada segundo — na barra de menus do Mac, no iPhone, no Apple Watch e na Dynamic Island.
 
 <img src="docs/panel.png" width="360" alt="O painel: o ganho de hoje, os valores por trás dele, o acumulado do mês e duas metas de poupança com as datas em que estarão pagas.">
 
@@ -14,19 +14,22 @@ Ele fica na barra de menus como um número e um pequeno anel de progresso. Cliqu
 - **Entende de folgas.** Feriados, folgas pagas e folgas sem pagamento caem em lugares diferentes, e a folga sem pagamento só mexe no salário base, nunca nos subsídios.
 - **Mede preços em trabalho.** Uma meta aparece em dias de trabalho e na data em que o horário diz que ela estará paga, não só em dinheiro.
 - **Nove idiomas**, qualquer símbolo de moeda, qualquer fuso horário IANA.
-- **Sem conta, sem rede, sem telemetria.** Tudo é calculado no seu Mac a partir dos ajustes que você digitou.
+- **Sem conta, sem rede, sem telemetria.** Tudo é calculado na sua própria máquina a partir dos ajustes que você digitou.
+- **Quatro telas, um único cálculo.** O Mac, o celular, o relógio e a Dynamic Island leem todos o mesmo código de domínio, então não têm como discordar sobre quanto vale um segundo.
 
 ## Instalação
+
+### O app para Mac
 
 Requer **macOS 26 ou posterior** e um toolchain Swift 6. Compilado e testado com o Swift 6.3; versões anteriores do Swift 6 não foram testadas.
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
 cd SalaryTicker
-./Packaging/build_app.sh install
+make install
 ```
 
-Isso compila um binário de release, gera o ícone do app a partir do código, monta o `SalaryTicker.app`, assina em modo ad-hoc, copia para `/Applications` e abre o app. Sem o argumento `install`, a compilação fica no diretório de trabalho e nada é instalado.
+Isso compila um binário de release, gera o ícone do app a partir do código, monta o `SalaryTicker.app`, assina em modo ad-hoc, copia para `/Applications` e abre o app. O `make app` faz o mesmo sem instalar.
 
 Não há nada para tirar da quarentena: você mesmo compilou o binário, então ele nunca carrega a marca de download que o Gatekeeper procura. A assinatura é ad-hoc, o que basta para um app compilado localmente e dá ao item de início uma identidade estável.
 
@@ -34,9 +37,22 @@ Para atualizar, faça o pull e rode o mesmo comando — ele substitui a cópia i
 
 Para desinstalar: use Sair no painel, apague `/Applications/SalaryTicker.app` e, se quiser eliminar também os ajustes, `defaults delete com.steve.salaryticker`.
 
+### O iPhone e o Apple Watch
+
+Requer **iOS 26 / watchOS 26**, o Xcode 26 e o [xcodegen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
+
+```bash
+make run      # the phone, on the iOS Simulator
+make watch    # the watch, on the paired watch simulator
+```
+
+Por enquanto, só simuladores: todos os targets são compilados com a assinatura de código desligada. Colocar isso em hardware de verdade exige adicionar antes um Apple ID no Xcode, e o perfil de provisionamento de uma conta gratuita expira depois de sete dias — passado esse prazo, o app para de abrir até você recompilá-lo.
+
+Num iPhone de verdade, o app do relógio não é instalado separadamente. Ele vem **dentro** do app do celular, então você instala o app do celular e depois ou deixa a Instalação Automática de Apps ligada, ou abre o app **Watch** do iPhone e toca em Instalar ao lado do SalaryTicker, em Apps Disponíveis. Os simuladores não têm nada dessa maquinaria, e é por isso que o `make watch` põe o app direto no relógio.
+
 ## Primeira execução
 
-A barra de menus mostra `Definir salário` até que o horário faça sentido. Abra **Ajustes** pelo painel e preencha três coisas:
+A barra de menus mostra `Definir salário` até que o horário faça sentido. Abra **Definições** pelo painel e preencha três coisas:
 
 1. **Aba Salário** — o seu salário base e qualquer subsídio fixo ao lado dele.
 2. **Aba Horário** — entrada, saída e o almoço não remunerado.
@@ -80,7 +96,7 @@ Ela tem um **limite** — quatro horas por padrão, e nunca passa da meia-noite 
 
 ### Metas
 
-Adicione as coisas que você está juntando dinheiro para comprar. Cada uma mostra quanto custa em **dias de trabalho** e a data em que o horário diz que ela estará paga. Ative Mostrar no painel nas que você quiser; as outras ficam em Ajustes.
+Adicione as coisas que você está juntando dinheiro para comprar. Cada uma mostra quanto custa em **dias de trabalho** e a data em que o horário diz que ela estará paga. Ative Mostrar no painel nas que você quiser; as outras ficam em Definições.
 
 **Reordene-os com as setas ao lado de cada um, ou arrastando.** Um ringgit só pode ser gasto uma vez, então os objetivos são financiados de cima para baixo: um objetivo só começa a encher depois de pagos os que estão acima, e a sua data inclui essa espera. O dinheiro já ganho para um objetivo fica lá — pôr um novo no topo não retira o que um mais antigo já recebeu.
 
@@ -100,6 +116,40 @@ A data **não se move enquanto você trabalha.** O que você ganha e o que o rel
 ### Abrir ao iniciar sessão
 
 Exige que o app esteja rodando a partir de `/Applications`. O que fica guardado é o que você pediu: o app se registra na inicialização quando a opção está ligada e nunca cancela esse registro, porque o macOS lista apps de barra de menus como itens de início só por terem sido executados uma vez, e a resposta dele não é confiável em nenhum dos dois sentidos.
+
+## No celular e no relógio
+
+Os mesmos quatro números que o painel mostra, na mesma ordem, porque quem usa os dois não deveria ter que aprender o app duas vezes.
+
+<img src="docs/phone.png" width="300" alt="O celular: o ganho de hoje, os valores por trás dele, o mês até agora e uma meta com a data em que estará paga."> <img src="docs/watch.png" width="300" alt="O relógio: o ganho de hoje, o tempo que falta até a saída, o mês até agora e a primeira meta fixada no painel.">
+
+### Como levar os seus ajustes para lá
+
+Abra **Definições → Sistema → Enviar para o telemóvel** no Mac e aponte a câmera do celular para o QR code. Tudo vai junto — salário, horário, dias úteis, folgas, metas —, então o celular já começa com os seus números em vez dos valores padrão.
+
+Por baixo, o que o código codifica é um link. É justamente isso que torna a importação testável: um simulador não tem câmera, mas dá para entregar uma URL a ele.
+
+Ele contém o seu salário, e é por isso que é uma imagem e não um texto que dê para copiar. Um código numa tela vai para uma câmera e para mais lugar nenhum; no momento em que virasse texto num menu de compartilhamento, ele passaria a ter chance de acabar em algum lugar onde nunca deveria estar.
+
+### O celular
+
+Uma única tela rolável em vez das abas do Mac, porque um celular rola de qualquer jeito e as abas esconderiam justamente aquilo que você veio mudar atrás de um palpite sobre em que aba a coisa está.
+
+**As metas são adicionadas aqui**, pela tela principal, e o formulário pede o nome e o preço antes de criar qualquer coisa. Em Definições é onde você renomeia, muda o preço, reordena e apaga.
+
+### O relógio
+
+O app do relógio não guarda ajustes próprios e não dá jeito nenhum de digitá-los — um relógio não consegue ler um QR code. Ele espera pelo celular, que manda os ajustes mais recentes toda vez que algum muda. Então o app do celular precisa ter sido aberto pelo menos uma vez, ou o relógio não tem nada para mostrar. Há também uma complicação para o mostrador do relógio.
+
+### A Dynamic Island e a tela de bloqueio
+
+Ligada em **Definições → Exibição → Dynamic Island**, e desligada ali mesmo quando você preferir não ter o seu pagamento na tela de bloqueio. O iOS tem o próprio interruptor para as Atividades Ao Vivo; este aqui só consegue subtrair dele.
+
+O que se move ali se move sem nenhum código rodando. O iOS anima a contagem regressiva até a saída e a barra de progresso ao longo de um intervalo fixo de datas, então os dois continuam vivos e exatos horas depois da última vez que o app esteve aberto.
+
+**O dinheiro não**, e nem finge que sim. Atualizá-lo exige o app na frente ou um servidor de push, e aqui não há nem um nem outro — então ele aparece como um valor com a hora em que foi tirado impressa ao lado. Um contador que parou caladinho é pior do que um que diz quando parou.
+
+Toque e segure a ilha para ver a versão expandida. Um **toque abre o app**: o iOS reserva o toque para isso e não oferece jeito de pedir outra coisa.
 
 ## Como o número é calculado
 
@@ -134,14 +184,16 @@ Uma pausa manual existiu por pouco tempo. Era o único estado acumulado do app e
 - **Sem imposto, EPF ou SOCSO.** Todos os valores são brutos.
 - **Sem histórico.** O acumulado do mês é derivado do horário deste mês, não de um registro do que foi realmente trabalhado. Editar o seu salário ou o seu horário reprecifica os dias que já ficaram para trás no mês corrente.
 - **Um único horário.** Um padrão que não seja semanal — sábados alternados, uma escala de turnos — não tem como ser expresso, a não ser marcando as exceções à mão.
+- **Só simuladores no iOS.** Nada aqui é assinado para hardware de verdade, e o perfil de uma conta Apple gratuita dura sete dias, então um celular e um relógio que você realmente carrega precisariam ser reinstalados toda semana.
 
 ## Desenvolvimento
 
 ```bash
 make                 # list every target
-make test            # 268 tests
+make test            # 276 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
+make watch           # the watch app, on the paired watch simulator
 ```
 
 Clean Architecture orientada a funcionalidades, um target SwiftPM por camada, para que a direção das dependências seja imposta pelo compilador, e não pela disciplina. As decisões de projeto, os invariantes do modelo de dinheiro e os bugs que os moldaram estão descritos em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

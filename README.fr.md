@@ -4,7 +4,7 @@
 [English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md) · **Français** · [Deutsch](README.de.md) · [Português](README.pt.md) · [Bahasa Melayu](README.ms.md)
 <!-- language-bar -->
 
-Une app macOS pour la barre des menus, qui affiche ce que vous avez gagné jusqu'ici aujourd'hui, seconde par seconde.
+Ce que vous avez gagné jusqu'ici aujourd'hui, seconde par seconde — dans la barre des menus du Mac, sur l'iPhone, sur l'Apple Watch et sur la Dynamic Island.
 
 <img src="docs/panel.png" width="360" alt="Le panneau : les gains du jour, les taux qui les produisent, le total de ce mois-ci, et deux objectifs d'épargne avec les dates auxquelles ils seront payés.">
 
@@ -14,25 +14,41 @@ Elle se loge dans la barre des menus sous la forme d'un montant et d'un petit an
 - **Sait ce qu'est un congé.** Jours fériés, congés payés et congés non payés ne tombent pas au même endroit, et un congé non payé n'entame que votre salaire de base, pas vos indemnités.
 - **Convertit les prix en travail.** Un objectif s'affiche en jours de travail, avec la date à laquelle vos horaires disent qu'il sera payé, pas seulement en argent.
 - **Neuf langues**, n'importe quel symbole monétaire, n'importe quel fuseau horaire IANA.
-- **Aucun compte, aucun réseau, aucune télémétrie.** Tout est calculé sur votre Mac à partir des réglages que vous avez saisis.
+- **Aucun compte, aucun réseau, aucune télémétrie.** Tout est calculé sur votre propre appareil à partir des réglages que vous avez saisis.
+- **Quatre écrans, un seul calcul.** Le Mac, le téléphone, la montre et la Dynamic Island lisent tous le même code métier, ils ne peuvent donc pas être en désaccord sur ce que vaut une seconde.
 
 ## Installation
+
+### L'app pour Mac
 
 Nécessite **macOS 26 ou une version ultérieure** et une chaîne d'outils Swift 6. Compilée et testée avec Swift 6.3 ; les versions antérieures de Swift 6 n'ont pas été testées.
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
 cd SalaryTicker
-./Packaging/build_app.sh install
+make install
 ```
 
-Cela compile un binaire en release, génère l'icône de l'app depuis les sources, assemble `SalaryTicker.app`, le signe en ad-hoc, le copie dans `/Applications` et le lance. Omettez l'argument `install` pour compiler dans le répertoire de travail sans installer.
+Cela compile un binaire en release, génère l'icône de l'app depuis les sources, assemble `SalaryTicker.app`, le signe en ad-hoc, le copie dans `/Applications` et le lance. `make app` fait la même chose sans l'installer.
 
 Il n'y a rien à sortir de la quarantaine : vous avez compilé le binaire vous-même, il ne porte donc jamais l'attribut de téléchargement que Gatekeeper surveille. La signature est ad-hoc, ce qui suffit pour une app compilée localement et donne à l'élément d'ouverture de session une identité stable.
 
 Pour mettre à jour, faites un pull et relancez la même commande — elle remplace la copie installée et redémarre l'app. Vos réglages vivent en dehors du bundle et ne sont pas touchés.
 
 Pour désinstaller : quittez l'app depuis le panneau, supprimez `/Applications/SalaryTicker.app`, et si vous voulez aussi effacer les réglages, `defaults delete com.steve.salaryticker`.
+
+### L'iPhone et l'Apple Watch
+
+Nécessite **iOS 26 / watchOS 26**, Xcode 26 et [xcodegen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
+
+```bash
+make run      # the phone, on the iOS Simulator
+make watch    # the watch, on the paired watch simulator
+```
+
+Simulateurs uniquement en l'état : toutes les cibles sont compilées sans signature de code. Poser cela sur du vrai matériel suppose d'abord d'ajouter un identifiant Apple dans Xcode, et le profil de provisionnement d'un compte gratuit expire au bout de sept jours — après quoi l'app ne s'ouvre plus tant que vous ne l'avez pas recompilée.
+
+Sur un vrai iPhone, l'app de la montre ne s'installe pas séparément. Elle est livrée **à l'intérieur** de l'app du téléphone : vous installez donc l'app du téléphone, puis vous laissez l'installation automatique des apps activée, ou bien vous ouvrez l'app **Watch** de l'iPhone et touchez Installer à côté de SalaryTicker sous les apps disponibles. Les simulateurs n'ont rien de cette mécanique, et c'est pourquoi `make watch` la pose directement sur la montre.
 
 ## Premier lancement
 
@@ -101,6 +117,40 @@ La date **ne bouge pas tant que vous travaillez.** Ce que vous gagnez et ce que 
 
 Nécessite que l'app soit lancée depuis `/Applications`. Ce qui est stocké, c'est ce que vous avez demandé : l'app s'inscrit au démarrage quand l'option est activée, et ne se désinscrit jamais, parce que macOS range les apps de la barre des menus parmi les éléments d'ouverture de session du simple fait qu'elles ont tourné une fois, et que sa réponse n'est fiable dans aucun des deux sens.
 
+## Sur le téléphone et la montre
+
+Les quatre mêmes montants que ceux du panneau, dans le même ordre, parce que quelqu'un qui utilise les deux ne devrait pas avoir à apprendre l'app deux fois.
+
+<img src="docs/phone.png" width="300" alt="Le téléphone : les gains du jour, les taux qui les produisent, le total de ce mois-ci, et un objectif avec la date à laquelle il sera payé."> <img src="docs/watch.png" width="300" alt="La montre : les gains du jour, le temps restant avant le départ, le total de ce mois-ci, et le premier objectif épinglé.">
+
+### Faire passer vos réglages
+
+Ouvrez **Réglages → Système → Envoyer au téléphone** sur le Mac et pointez l'appareil photo du téléphone vers le QR code. Tout voyage — salaire, horaires, jours ouvrés, congés, objectifs — si bien que le téléphone démarre sur vos chiffres plutôt que sur les valeurs par défaut.
+
+En dessous, le code encode un lien. C'est ce qui rend l'import testable, tout simplement : un simulateur n'a pas d'appareil photo, mais on peut lui passer une URL.
+
+Il contient votre salaire, et c'est pour cela que c'est une image et non une chaîne de caractères que vous pouvez copier. Un code affiché à l'écran passe dans un appareil photo et nulle part ailleurs ; dès l'instant où il deviendrait du texte dans une feuille de partage, il aurait une chance de finir quelque part où il n'aurait jamais dû être.
+
+### Le téléphone
+
+Un seul écran qui défile plutôt que les onglets du Mac, parce qu'un téléphone défile de toute façon et que des onglets cacheraient ce que vous êtes venu changer derrière une devinette sur l'onglet où cela se trouve.
+
+**Les objectifs s'ajoutent ici**, depuis l'écran principal, et la feuille demande le nom et le prix avant de créer quoi que ce soit. C'est dans les Réglages que vous les renommez, changez leur prix, les réordonnez et les supprimez.
+
+### La montre
+
+L'app de la montre ne garde aucun réglage à elle et ne vous donne aucun moyen de les saisir — une montre ne peut pas scanner un QR code. Elle attend le téléphone, qui envoie les réglages les plus récents à chaque changement. L'app du téléphone doit donc avoir été ouverte au moins une fois, sinon la montre n'a rien à afficher. Il y a aussi une complication pour le cadran de la montre.
+
+### La Dynamic Island et l'écran verrouillé
+
+S'active dans **Réglages → Affichage → Dynamic Island**, et s'y désactive quand vous préférez ne pas avoir votre paie sur l'écran verrouillé. iOS a son propre interrupteur pour les activités en direct ; celui-ci ne peut jamais qu'en retrancher.
+
+Ce qui bouge là-bas bouge sans qu'aucun code ne tourne. iOS anime le compte à rebours jusqu'au départ et la barre de progression sur une plage de dates fixée à l'avance, si bien que les deux restent vivants et exacts des heures après la dernière ouverture de l'app.
+
+**L'argent, lui, ne bouge pas**, et ne prétend pas le faire. Le rafraîchir demanderait l'app au premier plan ou un serveur de push, et il n'y a ni l'un ni l'autre — il est donc affiché comme un montant avec, à côté, l'heure à laquelle il a été relevé. Un compteur qui s'est arrêté en silence est pire qu'un compteur qui dit quand il s'est arrêté.
+
+Touchez l'île de façon prolongée pour la vue étendue. Un **appui ouvre l'app** : iOS réserve l'appui à cela et n'offre aucun moyen de demander autre chose.
+
 ## Comment le montant est calculé
 
 ```
@@ -134,14 +184,16 @@ Une pause manuelle a brièvement existé. C'était le seul état accumulé de l'
 - **Ni impôt, ni EPF, ni SOCSO.** Tous les chiffres sont bruts.
 - **Pas d'historique.** Le total de ce mois-ci est déduit des horaires du mois en cours, pas d'un relevé de ce qui a réellement été travaillé. Modifier votre salaire ou vos horaires recalcule la valeur des jours déjà passés du mois en cours.
 - **Un seul horaire.** Un rythme qui n'est pas hebdomadaire — un samedi sur deux, une rotation d'équipes — ne peut s'exprimer qu'en marquant les exceptions à la main.
+- **Simulateurs uniquement sur iOS.** Rien ici n'est signé pour du vrai matériel, et le profil d'un compte Apple gratuit ne dure que sept jours : un téléphone et une montre que vous portez vraiment devraient donc être redéployés chaque semaine.
 
 ## Développement
 
 ```bash
 make                 # list every target
-make test            # 268 tests
+make test            # 276 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
+make watch           # the watch app, on the paired watch simulator
 ```
 
 Clean Architecture orientée fonctionnalités, une cible SwiftPM par couche, de sorte que le sens des dépendances est imposé par le compilateur plutôt que par la discipline. Les décisions de conception, les invariants du modèle monétaire et les bugs qui les ont façonnés sont détaillés dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

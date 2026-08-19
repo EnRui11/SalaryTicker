@@ -4,7 +4,7 @@
 **English** · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português](README.pt.md) · [Bahasa Melayu](README.ms.md)
 <!-- language-bar -->
 
-A macOS menu bar app that shows what you have earned so far today, ticking every second.
+What you have earned so far today, ticking every second — in the Mac's menu bar, on the iPhone, on the Apple Watch, and on the Dynamic Island.
 
 <img src="docs/panel.png" width="360" alt="The panel: today's earnings, the rates behind them, month to date, and two savings goals with the dates they will be paid for.">
 
@@ -14,25 +14,41 @@ It sits in the menu bar as a number and a small progress ring. Click it for the 
 - **Knows about leave.** Public holidays, paid leave and unpaid leave land in different places, and unpaid leave only touches your basic, not your allowance.
 - **Prices things in work.** A goal is shown in working days and in the date the schedule says it will be paid for, not just in money.
 - **Nine languages**, any currency symbol, any IANA time zone.
-- **No account, no network, no telemetry.** Everything is computed on your Mac from settings you typed.
+- **No account, no network, no telemetry.** Everything is computed on your own machine from settings you typed.
+- **Four screens, one calculation.** The Mac, the phone, the watch and the Dynamic Island all read the same domain code, so they cannot disagree about what a second is worth.
 
 ## Install
+
+### The Mac app
 
 Requires **macOS 26 or later** and a Swift 6 toolchain. Built and tested against Swift 6.3; earlier Swift 6 releases are untested.
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
 cd SalaryTicker
-./Packaging/build_app.sh install
+make install
 ```
 
-That builds a release binary, generates the app icon from source, assembles `SalaryTicker.app`, ad-hoc signs it, copies it into `/Applications` and launches it. Drop the `install` argument to build into the working directory without installing.
+That builds a release binary, generates the app icon from source, assembles `SalaryTicker.app`, ad-hoc signs it, copies it into `/Applications` and launches it. `make app` does the same without installing it.
 
 There is nothing to un-quarantine: you compiled the binary yourself, so it never carries the download flag Gatekeeper looks for. The signature is ad-hoc, which is enough for a locally built app and gives the login item a stable identity.
 
 To update, pull and run the same command — it replaces the installed copy and relaunches. Your settings live outside the bundle and are not touched.
 
 To uninstall: quit from the panel, delete `/Applications/SalaryTicker.app`, and if you want the settings gone too, `defaults delete com.steve.salaryticker`.
+
+### The iPhone and the Apple Watch
+
+Requires **iOS 26 / watchOS 26**, Xcode 26, and [xcodegen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
+
+```bash
+make run      # the phone, on the iOS Simulator
+make watch    # the watch, on the paired watch simulator
+```
+
+Simulators only as it stands: every target is built with code signing off. Putting this on real hardware means adding an Apple ID in Xcode first, and a free account's provisioning profile expires after seven days — after which the app stops opening until you rebuild it.
+
+On a real iPhone the watch app is not installed separately. It ships **inside** the phone app, so you install the phone app and then either leave Automatic App Install on, or open the iPhone's **Watch** app and tap Install beside SalaryTicker under Available Apps. Simulators have none of that machinery, which is why `make watch` puts it on the watch directly.
 
 ## First run
 
@@ -101,6 +117,40 @@ The date **holds still while you work.** What you earn and what the clock does a
 
 Needs the app to be running from `/Applications`. What you asked for is what is stored: the app registers itself at startup when the toggle is on, and never unregisters, because macOS lists menu bar apps as login items merely for having run once and its answer cannot be trusted either way.
 
+## On the phone and the watch
+
+The same four numbers the panel shows, in the same order, because someone who uses both should not have to learn the app twice.
+
+<img src="docs/phone.png" width="300" alt="The phone: today's earnings, the rates behind them, the month so far, and a goal with the date it will be paid for."> <img src="docs/watch.png" width="300" alt="The watch: today's earnings, the time left until clock-off, the month so far, and the first pinned goal.">
+
+### Getting your settings across
+
+Open **Settings → System → Send to phone** on the Mac and point the phone's camera at the QR code. Everything travels — salary, hours, working days, leave, goals — so the phone starts on your numbers instead of on the defaults.
+
+Underneath, the code encodes a link. That is what makes the import testable at all: a simulator has no camera, but it can be handed a URL.
+
+It holds your salary, which is why it is a picture and not a string you can copy. A code on a screen goes into a camera and nowhere else; the moment it became text in a share sheet it would have a chance of ending up somewhere it was never meant to be.
+
+### The phone
+
+One scrolling screen rather than the Mac's tabs, because a phone scrolls anyway and tabs would hide the thing you came to change behind a guess about which tab it lives in.
+
+**Goals are added here**, from the main screen, and the sheet asks for the name and the price before it creates anything. Settings is where you rename, reprice, reorder and delete them.
+
+### The watch
+
+The watch app holds no settings of its own and gives you no way to type them — a watch cannot scan a QR code. It waits for the phone, which sends the newest settings every time one changes. So the phone app has to have been opened at least once, or the watch has nothing to show. There is a complication for the watch face as well.
+
+### The Dynamic Island and the lock screen
+
+Switched on under **Settings → Display → Dynamic Island**, and switched off there when you would rather not have your pay on the lock screen. iOS has its own switch for Live Activities; this one can only ever subtract from it.
+
+What moves there moves with no code running. iOS animates the countdown to clock-off and the progress bar across a fixed range of dates, so both stay live and exact hours after the app was last open.
+
+**The money does not**, and does not pretend to. Refreshing it needs the app in front or a push server, and this has neither — so it is shown as a figure with the time it was taken printed beside it. A ticker that has quietly stopped is worse than one that says when it stopped.
+
+Touch and hold the island for the expanded view. A **tap opens the app**: iOS reserves the tap for that and offers no way to ask for anything else.
+
 ## How the number is worked out
 
 ```
@@ -134,14 +184,16 @@ A manual pause did exist briefly. It was the only accumulated state in the app a
 - **No tax, EPF or SOCSO.** Every figure is gross.
 - **No history.** Month-to-date is derived from this month's schedule, not from a record of what was actually worked. Editing your salary or hours re-prices the days already behind you in the current month.
 - **One schedule.** A pattern that is not weekly — alternating Saturdays, a rotating shift — cannot be expressed except by marking the exceptions by hand.
+- **Simulators only on iOS.** Nothing here is signed for real hardware, and a free Apple account's profile lasts seven days, so a phone and a watch you actually carry would need re-deploying every week.
 
 ## Development
 
 ```bash
 make                 # list every target
-make test            # 268 tests
+make test            # 276 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
+make watch           # the watch app, on the paired watch simulator
 ```
 
 Feature-first Clean Architecture, one SwiftPM target per layer, so the dependency direction is enforced by the compiler rather than by discipline. The design decisions, the money model's invariants, and the bugs that shaped them are written up in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

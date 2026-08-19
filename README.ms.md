@@ -4,7 +4,7 @@
 [English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português](README.pt.md) · **Bahasa Melayu**
 <!-- language-bar -->
 
-Aplikasi bar menu macOS yang menunjukkan berapa banyak yang anda sudah peroleh hari ini, berdetik setiap saat.
+Apa yang anda sudah peroleh hari ini, berdetik setiap saat — di bar menu Mac, pada iPhone, pada Apple Watch, dan pada Dynamic Island.
 
 <img src="docs/panel.png" width="360" alt="Panel: pendapatan hari ini, kadar di sebaliknya, jumlah bulan ini, dan dua sasaran simpanan berserta tarikh ia akan siap dibayar.">
 
@@ -14,25 +14,41 @@ Ia berada di bar menu sebagai satu nombor dan satu gelang kemajuan kecil. Klik u
 - **Faham tentang cuti.** Hari kelepasan am, cuti bergaji dan cuti tanpa gaji jatuh di tempat yang berlainan, dan cuti tanpa gaji hanya menyentuh gaji pokok anda, bukan elaun.
 - **Meletakkan harga dalam bentuk kerja.** Satu sasaran ditunjukkan dalam hari kerja dan dalam tarikh yang jadual anda kata ia akan siap dibayar, bukan sekadar dalam wang.
 - **Sembilan bahasa**, apa-apa simbol mata wang, apa-apa zon waktu IANA.
-- **Tiada akaun, tiada rangkaian, tiada telemetri.** Semuanya dikira pada Mac anda daripada tetapan yang anda taip sendiri.
+- **Tiada akaun, tiada rangkaian, tiada telemetri.** Semuanya dikira pada peranti anda sendiri daripada tetapan yang anda taip.
+- **Empat skrin, satu kiraan.** Mac, telefon, jam tangan dan Dynamic Island semuanya membaca kod domain yang sama, jadi ia tidak mungkin berselisih tentang berapa nilai satu saat.
 
 ## Pemasangan
+
+### Aplikasi Mac
 
 Memerlukan **macOS 26 atau lebih baharu** dan rantaian alat Swift 6. Dibina dan diuji dengan Swift 6.3; keluaran Swift 6 yang lebih awal belum diuji.
 
 ```bash
 git clone https://github.com/EnRui11/SalaryTicker.git
 cd SalaryTicker
-./Packaging/build_app.sh install
+make install
 ```
 
-Arahan itu membina binari keluaran, menjana ikon aplikasi daripada sumber, menghimpunkan `SalaryTicker.app`, menandatanganinya secara ad-hoc, menyalinnya ke `/Applications` dan melancarkannya. Buang hujah `install` untuk membina ke dalam direktori kerja tanpa memasangnya.
+Arahan itu membina binari keluaran, menjana ikon aplikasi daripada sumber, menghimpunkan `SalaryTicker.app`, menandatanganinya secara ad-hoc, menyalinnya ke `/Applications` dan melancarkannya. `make app` melakukan perkara yang sama tanpa memasangnya.
 
 Tiada apa-apa yang perlu dinyahkuarantin: anda sendiri yang mengkompil binari itu, jadi ia tidak pernah membawa bendera muat turun yang dicari Gatekeeper. Tandatangannya ad-hoc, dan itu memadai untuk aplikasi yang dibina secara setempat serta memberi item log masuk satu identiti yang tetap.
 
 Untuk mengemas kini, tarik (pull) dan jalankan arahan yang sama — ia menggantikan salinan yang dipasang dan melancarkannya semula. Tetapan anda berada di luar bundel dan tidak disentuh.
 
 Untuk menyahpasang: tekan Keluar dalam panel, padam `/Applications/SalaryTicker.app`, dan jika anda mahu tetapan turut hilang, `defaults delete com.steve.salaryticker`.
+
+### iPhone dan Apple Watch
+
+Memerlukan **iOS 26 / watchOS 26**, Xcode 26, dan [xcodegen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
+
+```bash
+make run      # the phone, on the iOS Simulator
+make watch    # the watch, on the paired watch simulator
+```
+
+Setakat ini simulator sahaja: setiap target dibina dengan penandatanganan kod dimatikan. Untuk meletakkannya pada perkakasan sebenar, anda perlu menambah Apple ID dalam Xcode dahulu, dan profil peruntukan bagi akaun percuma tamat tempoh selepas tujuh hari — selepas itu aplikasi berhenti dibuka sehingga anda membinanya semula.
+
+Pada iPhone sebenar, aplikasi jam tangan tidak dipasang secara berasingan. Ia dihantar **di dalam** aplikasi telefon, jadi anda pasang aplikasi telefon dan kemudian sama ada biarkan Automatic App Install dihidupkan, atau buka aplikasi **Watch** pada iPhone dan tekan Install di sebelah SalaryTicker di bawah Available Apps. Simulator tiada jentera sebegitu, dan itulah sebabnya `make watch` meletakkannya terus pada jam tangan.
 
 ## Kali pertama dijalankan
 
@@ -101,6 +117,40 @@ Tarikh itu **tidak bergerak selagi anda bekerja.** Pendapatan anda dan pergeraka
 
 Memerlukan aplikasi berjalan dari `/Applications`. Apa yang anda minta, itulah yang disimpan: aplikasi mendaftarkan dirinya semasa dilancarkan apabila suisnya dihidupkan, dan tidak pernah membatalkan pendaftaran itu, kerana macOS menyenaraikan aplikasi bar menu sebagai item log masuk semata-mata kerana ia pernah dijalankan sekali, dan jawapannya tidak boleh dipercayai dalam kedua-dua keadaan.
 
+## Pada telefon dan jam tangan
+
+Empat nombor yang sama seperti yang ditunjukkan panel, dalam susunan yang sama, kerana orang yang menggunakan kedua-duanya tidak sepatutnya perlu belajar aplikasi ini dua kali.
+
+<img src="docs/phone.png" width="300" alt="Telefon: pendapatan hari ini, kadar di sebaliknya, jumlah bulan setakat ini, dan satu sasaran berserta tarikh ia akan siap dibayar."> <img src="docs/watch.png" width="300" alt="Jam tangan: pendapatan hari ini, baki masa sehingga waktu Balik, jumlah bulan setakat ini, dan sasaran pertama yang ditunjuk dalam panel.">
+
+### Memindahkan tetapan anda
+
+Buka **Tetapan → Sistem → Hantar ke telefon** pada Mac dan halakan kamera telefon ke kod QR itu. Semuanya berpindah — gaji, waktu kerja, hari kerja, cuti, sasaran — jadi telefon bermula dengan nombor anda dan bukan dengan tetapan lalai.
+
+Di sebaliknya, kod itu mengekodkan satu pautan. Itu sahajalah sebabnya proses import boleh diuji: simulator tiada kamera, tetapi ia boleh dihulurkan satu URL.
+
+Ia mengandungi gaji anda, dan itulah sebabnya ia sebuah gambar dan bukan rentetan teks yang boleh anda salin. Kod pada skrin masuk ke dalam kamera dan tidak ke mana-mana lagi; saat ia menjadi teks dalam helaian kongsi, ia sudah berpeluang berakhir di tempat yang ia tidak pernah sepatutnya berada.
+
+### Telefon
+
+Satu skrin yang ditatal dan bukan tab seperti pada Mac, kerana telefon memang ditatal, dan tab pula akan menyembunyikan perkara yang anda datang untuk ubah di sebalik tekaan tentang tab mana ia berada.
+
+**Sasaran ditambah di sini**, dari skrin utama, dan helaian itu meminta nama serta harganya sebelum apa-apa dicipta. Tetapan pula tempat anda menamakannya semula, menukar harganya, menyusunnya semula dan memadamnya.
+
+### Jam tangan
+
+Aplikasi jam tangan tidak menyimpan tetapannya sendiri dan tidak memberi anda cara untuk menaipnya — jam tangan tidak boleh mengimbas kod QR. Ia menunggu telefon, yang menghantar tetapan terbaharu setiap kali ada yang berubah. Jadi aplikasi telefon mesti pernah dibuka sekurang-kurangnya sekali, jika tidak jam tangan tiada apa-apa untuk dipaparkan. Ada juga komplikasi untuk muka jam.
+
+### Dynamic Island dan skrin kunci
+
+Dihidupkan di bawah **Tetapan → Paparan → Dynamic Island**, dan dimatikan di situ apabila anda lebih suka gaji anda tidak terpampang pada skrin kunci. iOS ada suisnya sendiri untuk Aktiviti Langsung; suis ini hanya boleh menolak daripadanya.
+
+Apa yang bergerak di situ bergerak tanpa sebarang kod berjalan. iOS menganimasikan kiraan detik menuju waktu Balik dan bar kemajuan merentas julat tarikh yang tetap, jadi kedua-duanya kekal hidup dan tepat berjam-jam selepas kali terakhir aplikasi dibuka.
+
+**Wangnya tidak**, dan ia tidak berpura-pura begitu. Untuk menyegarkannya, aplikasi perlu berada di hadapan atau perlu ada pelayan push, dan di sini tiada kedua-duanya — jadi ia ditunjukkan sebagai satu angka dengan waktu ia diambil dicetak di sebelahnya. Nombor yang berhenti berdetik secara senyap lebih buruk daripada nombor yang memberitahu bila ia berhenti.
+
+Sentuh dan tahan pulau itu untuk paparan yang diperluas. **Ketikan membuka aplikasi**: iOS menyimpan ketikan itu khusus untuk tujuan tersebut dan tidak menawarkan cara untuk meminta apa-apa yang lain.
+
 ## Bagaimana nombor itu dikira
 
 ```
@@ -134,14 +184,16 @@ Jeda manual pernah wujud sekejap. Ia satu-satunya keadaan terkumpul dalam aplika
 - **Tiada cukai, KWSP (EPF) atau PERKESO (SOCSO).** Setiap angka ialah angka kasar.
 - **Tiada sejarah.** Jumlah Bulan ini diperoleh daripada jadual bulan ini, bukan daripada rekod apa yang sebenarnya dikerjakan. Mengubah gaji atau waktu kerja anda akan mengira semula harga hari-hari yang sudah berlalu dalam bulan semasa.
 - **Satu jadual sahaja.** Corak yang bukan mingguan — Sabtu berselang-seli, syif berpusing — tidak boleh dinyatakan kecuali dengan menanda pengecualiannya secara manual.
+- **Simulator sahaja pada iOS.** Tiada apa-apa di sini yang ditandatangani untuk perkakasan sebenar, dan profil akaun Apple percuma hanya bertahan tujuh hari, jadi telefon dan jam tangan yang anda benar-benar bawa perlu dipasang semula setiap minggu.
 
 ## Pembangunan
 
 ```bash
 make                 # list every target
-make test            # 268 tests
+make test            # 276 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
+make watch           # the watch app, on the paired watch simulator
 ```
 
 Clean Architecture yang mengutamakan ciri, satu target SwiftPM bagi setiap lapisan, jadi arah kebergantungan dikuatkuasakan oleh pengkompil dan bukan oleh disiplin. Keputusan reka bentuk, invarian model wang, dan pepijat yang membentuknya dihuraikan dalam [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
