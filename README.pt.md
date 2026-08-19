@@ -143,7 +143,7 @@ A app do relógio não guarda definições próprias e não oferece maneira nenh
 
 ### A Dynamic Island e o ecrã bloqueado
 
-Ligada em **Definições → Exibição → Dynamic Island**, e desligada aí mesmo quando preferir não ter o seu pagamento no ecrã bloqueado. O iOS tem o seu próprio interruptor para as Atividades Ao Vivo; este aqui só consegue subtrair dele.
+Ligada em **Definições → Visualização → Dynamic Island**, e desligada aí mesmo quando preferir não ter o seu pagamento no ecrã bloqueado. O iOS tem o seu próprio interruptor para as Atividades Ao Vivo; este aqui só consegue subtrair dele.
 
 O que ali se move, move-se sem nenhum código a correr. O iOS anima a contagem decrescente até à saída e a barra de progresso ao longo de um intervalo fixo de datas, por isso os dois continuam vivos e exatos horas depois da última vez que a app esteve aberta.
 

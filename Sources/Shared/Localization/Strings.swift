@@ -813,7 +813,7 @@ public struct Strings: Sendable {
 
     public var sectionDisplay: String {
         t(en: "Display", zh: "显示", ja: "表示", ko: "표시",
-          es: "Pantalla", fr: "Affichage", de: "Anzeige", pt: "Exibição", ms: "Paparan")
+          es: "Pantalla", fr: "Affichage", de: "Anzeige", pt: "Visualização", ms: "Paparan")
     }
 
     /// Title of the settings tab holding display and system preferences.
