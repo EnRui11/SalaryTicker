@@ -7,13 +7,15 @@ import SalaryShared
 /// Solid squares are workdays already behind you, outlined ones are still to come, today is
 /// ringed. Tapping a scheduled day cycles it through paid holiday and unpaid leave, which
 /// is the whole reason this is on the phone: marking Merdeka the morning it is announced
-/// should not require going home to a Mac.
+/// should not require going home to a Mac. Touching and holding one opens its menu, which
+/// is the only way to a half day of leave.
 struct MonthGridView: View {
     let overview: MonthOverview
     let text: Strings
     let title: String
     let isCurrentMonth: Bool
     let onToggleDay: (DayKey) -> Void
+    let onSetDay: (DayKey, DayOverride?) -> Void
     let onStepMonth: (Int) -> Void
     let onShowCurrentMonth: () -> Void
 
@@ -85,7 +87,33 @@ struct MonthGridView: View {
         }
         .buttonStyle(.plain)
         .disabled(!day.isScheduled)
+        .contextMenu { if day.isScheduled { dayMenu(for: day) } }
         .accessibilityLabel(label(for: day))
+    }
+
+    // MARK: The day's menu
+
+    /// Every state a day can be in, ticked where it is now. The tap cycle still covers
+    /// the common three; the half days live here.
+    @ViewBuilder private func dayMenu(for day: MonthDay) -> some View {
+        menuItem(text.menuWorkday, nil, day)
+        menuItem(text.menuPaidHoliday, .paidLeave, day)
+        menuItem(text.menuUnpaidLeave, .unpaidLeave, day)
+        // One section, no divider. A menu reserves the tick's column per section, so a
+        // divider here left the two half days sitting a column to the left of the three
+        // above them whenever the tick was up there.
+        menuItem(text.menuMorningOff, .unpaidMorning, day)
+        menuItem(text.menuAfternoonOff, .unpaidAfternoon, day)
+    }
+
+    private func menuItem(_ title: String, _ state: DayOverride?, _ day: MonthDay) -> some View {
+        Button { onSetDay(day.key, state) } label: {
+            if day.override == state {
+                Label(title, systemImage: "checkmark")
+            } else {
+                Text(title)
+            }
+        }
     }
 
     @ViewBuilder private func fill(for day: MonthDay) -> some View {
@@ -93,11 +121,24 @@ struct MonthGridView: View {
         switch day.override {
         case .paidLeave: shape.fill(Color.orange.opacity(0.22))
         case .unpaidLeave: shape.fill(Color(.tertiarySystemFill))
+        // Drawn as the two halves it is — morning on the left, afternoon on the right, the
+        // half taken off in the unpaid grey — so it reads as half a day without a legend.
+        case .unpaidMorning:
+            HStack(spacing: 0) { halfOff; halfWorked(day) }.clipShape(shape)
+        case .unpaidAfternoon:
+            HStack(spacing: 0) { halfWorked(day); halfOff }.clipShape(shape)
         case nil:
             if !day.isScheduled { shape.fill(Color.clear) }
             else if day.isPast { shape.fill(Color.accentColor) }
             else { shape.fill(Color.accentColor.opacity(0.12)) }
         }
+    }
+
+    private var halfOff: Color { Color(.tertiarySystemFill) }
+
+    /// Paler than a whole worked day even once past, so the date stays readable on it.
+    private func halfWorked(_ day: MonthDay) -> Color {
+        Color.accentColor.opacity(day.isPast ? 0.45 : 0.12)
     }
 
     private func borderColour(for day: MonthDay) -> Color {
@@ -117,6 +158,10 @@ struct MonthGridView: View {
         switch day.override {
         case .paidLeave: parts.append(text.legendPaidLeave)
         case .unpaidLeave: parts.append(text.legendUnpaidLeave)
+        // Named explicitly: without these the `default` below read a half day of leave to
+        // a screen reader as a whole day off.
+        case .unpaidMorning: parts.append(text.menuMorningOff)
+        case .unpaidAfternoon: parts.append(text.menuAfternoonOff)
         case nil where day.isScheduled: parts.append(day.isPast ? text.legendWorked : text.legendUpcoming)
         default: parts.append(text.dayOff)
         }
@@ -124,12 +169,24 @@ struct MonthGridView: View {
         return parts.joined(separator: ", ")
     }
 
+    /// Two rows rather than one: five swatches do not fit across a phone in the longer
+    /// languages, and a legend that truncates is a legend that lies about what is there.
     private var legend: some View {
-        HStack(spacing: 12) {
-            swatch(Color.accentColor, text.legendWorked)
-            swatch(Color.accentColor.opacity(0.12), text.legendUpcoming)
-            swatch(Color.orange.opacity(0.22), text.legendPaidLeave)
-            swatch(Color(.tertiarySystemFill), text.legendUnpaidLeave)
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 12) {
+                swatch(Color.accentColor, text.legendWorked)
+                swatch(Color.accentColor.opacity(0.12), text.legendUpcoming)
+                swatch(Color.orange.opacity(0.22), text.legendPaidLeave)
+            }
+            HStack(spacing: 12) {
+                swatch(Color(.tertiarySystemFill), text.legendUnpaidLeave)
+                HStack(spacing: 4) {
+                    HStack(spacing: 0) { halfOff; Color.accentColor.opacity(0.12) }
+                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                        .frame(width: 9, height: 9)
+                    Text(text.legendHalfDayOff).lineLimit(1)
+                }
+            }
         }
         .font(.caption2)
         .foregroundStyle(.secondary)

@@ -85,6 +85,9 @@ make watch    # the watch, on the paired watch simulator
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **带薪**休 | 不花你一分钱。同样的薪水现在摊在更少的工作日上，所以你*真正*上班的每一天都更值钱一点。假期当天本身一分不跳 —— 它那一份摊到了别的日子上。 |
 | **无薪**休 | 扣掉一天的**基本薪资**。津贴照样全额到账。                                                                                                                                                      |
+| **半天**无薪 | 扣掉半天的基本薪资。在 Mac 上右键点日期，或在 iPhone 上长按，选上午或下午休。 |
+
+上午休和下午休扣的钱一模一样，区别在于数字什么时候跳。下午休从上班起算半天就停；上午休先等着，再一直算到下班 —— 所以你不在的时候，它从来不跳。
 
 有一个后果值得知道：把一个**已经过去的**日子标成带薪休，会让本月已累计的数字掉下来，因为那天的份额现在得由后面还没到的日子去赚。到了月底，它还是会回到你的薪水上。
 
@@ -190,7 +193,7 @@ this month        = days already earned × daily pay + today
 
 ```bash
 make                 # list every target
-make test            # 276 tests
+make test            # 296 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
 make watch           # the watch app, on the paired watch simulator

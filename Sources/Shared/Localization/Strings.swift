@@ -793,10 +793,15 @@ public struct Strings: Sendable {
           pt: "Sem pagamento", ms: "Tanpa gaji")
     }
 
-    public func daysOff(_ n: Int) -> String {
-        t(en: "\(n) off", zh: "\(n) 天休假", ja: "休み\(n)日", ko: "휴무 \(n)일",
-          es: "\(n) libres", fr: "\(n) en congé", de: "\(n) frei",
-          pt: "\(n) de folga", ms: "\(n) cuti")
+    /// Days of leave, which can now be a half: "2 off", "1.5 off". Whole numbers stay
+    /// whole rather than growing a ".0", and the decimal mark follows the language.
+    public func daysOff(_ days: Double) -> String {
+        let n = days.formatted(
+            .number.precision(.fractionLength(0...1)).locale(Locale(identifier: language.localeIdentifier))
+        )
+        return t(en: "\(n) off", zh: "\(n) 天休假", ja: "休み\(n)日", ko: "휴무 \(n)일",
+                 es: "\(n) libres", fr: "\(n) en congé", de: "\(n) frei",
+                 pt: "\(n) de folga", ms: "\(n) cuti")
     }
 
     public var calendarHint: String {
@@ -809,6 +814,71 @@ public struct Strings: Sendable {
           de: "Datum klicken: Arbeitstag → bezahlt frei → unbezahlt.",
           pt: "Clique numa data: útil → feriado pago → sem pagamento.",
           ms: "Klik tarikh: hari kerja → cuti bergaji → tanpa gaji.")
+    }
+
+    // MARK: A day's menu
+    //
+    // Fuller than the legend's labels on purpose: the legend has to fit five swatches on a
+    // line, a menu has the width to say what each choice actually means.
+
+    public var menuWorkday: String {
+        t(en: "Workday", zh: "工作日", ja: "勤務日", ko: "근무일",
+          es: "Día laborable", fr: "Jour travaillé", de: "Arbeitstag",
+          pt: "Dia útil", ms: "Hari kerja")
+    }
+    public var menuPaidHoliday: String {
+        t(en: "Paid holiday", zh: "带薪休假", ja: "有給休暇", ko: "유급 휴무",
+          es: "Festivo pagado", fr: "Congé payé", de: "Bezahlt frei",
+          pt: "Feriado pago", ms: "Cuti bergaji")
+    }
+    public var menuUnpaidLeave: String {
+        t(en: "Unpaid leave", zh: "无薪休假", ja: "無給休暇", ko: "무급 휴무",
+          es: "Sin sueldo", fr: "Congé sans solde", de: "Unbezahlt frei",
+          pt: "Sem pagamento", ms: "Cuti tanpa gaji")
+    }
+    /// Named by the half taken OFF, because that is the half being marked. The other half
+    /// is worked and ticks as usual.
+    public var menuMorningOff: String {
+        t(en: "Unpaid — morning off", zh: "无薪：上午休", ja: "無給：午前休", ko: "무급: 오전 휴무",
+          es: "Sin sueldo — mañana libre", fr: "Non payé — matin libre",
+          de: "Unbezahlt — Vormittag frei", pt: "Sem pagamento — manhã de folga",
+          ms: "Tanpa gaji — cuti pagi")
+    }
+    public var menuAfternoonOff: String {
+        t(en: "Unpaid — afternoon off", zh: "无薪：下午休", ja: "無給：午後休", ko: "무급: 오후 휴무",
+          es: "Sin sueldo — tarde libre", fr: "Non payé — après-midi libre",
+          de: "Unbezahlt — Nachmittag frei", pt: "Sem pagamento — tarde de folga",
+          ms: "Tanpa gaji — cuti petang")
+    }
+    public var legendHalfDayOff: String {
+        t(en: "Half day off", zh: "半天休", ja: "半休", ko: "반일 휴무",
+          es: "Medio día libre", fr: "Demi-journée libre", de: "Halber Tag frei",
+          pt: "Meio dia de folga", ms: "Cuti separuh hari")
+    }
+    /// The half days live in a menu rather than the click cycle, and a menu nobody knows
+    /// about is a feature nobody has. So the hint names the gesture — which differs by
+    /// platform, hence two of these rather than one that is wrong on one of them.
+    public var halfDayHintMac: String {
+        t(en: "Right-click a date for half a day of unpaid leave, morning or afternoon.",
+          zh: "右键点日期，可以只请半天无薪假（上午或下午）。",
+          ja: "日付を右クリックすると、半日の無給休（午前か午後）を指定できる。",
+          ko: "날짜를 오른쪽 클릭하면 오전 또는 오후 반일 무급 휴무로 지정할 수 있습니다.",
+          es: "Clic derecho en una fecha para medio día sin sueldo, de mañana o de tarde.",
+          fr: "Clic droit sur une date pour une demi-journée non payée, le matin ou l'après-midi.",
+          de: "Rechtsklick auf ein Datum für einen halben Tag unbezahlt frei, vormittags oder nachmittags.",
+          pt: "Clique com o botão direito numa data para meio dia sem pagamento, de manhã ou de tarde.",
+          ms: "Klik kanan tarikh untuk cuti tanpa gaji separuh hari, pagi atau petang.")
+    }
+    public var halfDayHintPhone: String {
+        t(en: "Touch and hold a date for half a day of unpaid leave, morning or afternoon.",
+          zh: "长按日期，可以只请半天无薪假（上午或下午）。",
+          ja: "日付を長押しすると、半日の無給休（午前か午後）を指定できる。",
+          ko: "날짜를 길게 누르면 오전 또는 오후 반일 무급 휴무로 지정할 수 있습니다.",
+          es: "Mantén pulsada una fecha para medio día sin sueldo, de mañana o de tarde.",
+          fr: "Touchez longuement une date pour une demi-journée non payée, le matin ou l'après-midi.",
+          de: "Datum gedrückt halten für einen halben Tag unbezahlt frei, vormittags oder nachmittags.",
+          pt: "Toque sem soltar numa data para meio dia sem pagamento, de manhã ou de tarde.",
+          ms: "Sentuh dan tahan tarikh untuk cuti tanpa gaji separuh hari, pagi atau petang.")
     }
 
     public var sectionDisplay: String {

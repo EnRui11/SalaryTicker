@@ -85,6 +85,9 @@ Dua jenis cuti ini jatuh di tempat yang berlainan, dan perbezaan itulah intinya:
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Cuti **bergaji**   | Tidak merugikan anda. Gaji yang sama kini merangkumi lebih sedikit hari kerja, jadi setiap hari anda *memang* bekerja bernilai sedikit lebih tinggi. Tiada apa-apa berdetik pada hari cuti itu sendiri — bahagiannya menumpang pada hari-hari lain. |
 | Cuti **tanpa gaji** | Merugikan anda sehari **gaji pokok**. Elaun anda tetap dibayar penuh.                                                                                                                              |
+| **Separuh hari** tanpa gaji | Merugikan anda separuh hari gaji pokok. Klik kanan tarikh pada Mac, atau sentuh dan tahan pada iPhone, dan pilih cuti pagi atau petang. |
+
+Cuti pagi dan cuti petang kosnya sama sahaja; yang berbeza ialah bila nombor itu bergerak. Cuti petang mengira dari masuk kerja selama separuh hari lalu berhenti, manakala cuti pagi menunggu dahulu kemudian berjalan hingga waktu pulang — jadi nombor itu tidak pernah berdetik semasa anda tiada.
 
 Satu akibat yang patut diketahui: menandakan hari yang **sudah berlalu** sebagai cuti bergaji akan menyebabkan jumlah Bulan ini turun, kerana bahagian hari itu kini perlu diperoleh pada hari-hari yang masih di hadapan. Menjelang hujung bulan, ia kembali kepada gaji anda.
 
@@ -190,7 +193,7 @@ Jeda manual pernah wujud sekejap. Ia satu-satunya keadaan terkumpul dalam aplika
 
 ```bash
 make                 # list every target
-make test            # 276 tests
+make test            # 296 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
 make watch           # the watch app, on the paired watch simulator

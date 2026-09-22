@@ -85,6 +85,9 @@ The two kinds of leave land in different places, and the difference is the point
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Paid** holiday | Costs you nothing. The same salary now covers fewer working days, so every day you *do* work is worth a little more. Nothing ticks on the holiday itself — its share rides on the other days. |
 | **Unpaid** leave | Costs one day of **basic** salary. Your allowance still arrives in full.                                                                                                                      |
+| **Half a day** unpaid | Costs half a day of basic. Right-click a date on the Mac, or touch and hold it on the iPhone, and choose the morning or the afternoon off.                                                |
+
+The morning and the afternoon cost exactly the same; what differs is when the number moves. An afternoon off counts from clock-in for half the day and stops, and a morning off waits, then runs to clock-off — so the ticker is never counting while you are away.
 
 One consequence worth knowing: marking a day that has **already passed** as a paid holiday makes month-to-date drop, because that day's share now has to be earned on the days still ahead. By the end of the month it lands back on your salary.
 
@@ -190,7 +193,7 @@ A manual pause did exist briefly. It was the only accumulated state in the app a
 
 ```bash
 make                 # list every target
-make test            # 276 tests
+make test            # 296 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
 make watch           # the watch app, on the paired watch simulator

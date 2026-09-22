@@ -41,7 +41,7 @@ public struct Earnings: Equatable, Sendable {
     /// Working days of this month already finished, today excluded.
     public var workdaysCompletedThisMonth: Int
     /// Scheduled days this month marked as holiday or leave.
-    public var daysOffThisMonth: Int
+    public var daysOffThisMonth: Double
     /// Paid seconds worked so far today.
     public var elapsedPaidSeconds: TimeInterval
     public var totalPaidSeconds: TimeInterval
@@ -59,7 +59,7 @@ public struct Earnings: Equatable, Sendable {
         monthEarned: Double,
         workdaysThisMonth: Int,
         workdaysCompletedThisMonth: Int,
-        daysOffThisMonth: Int = 0,
+        daysOffThisMonth: Double = 0,
         elapsedPaidSeconds: TimeInterval,
         totalPaidSeconds: TimeInterval,
         progress: Double,

@@ -41,21 +41,51 @@ public struct DayKey: Hashable, Comparable, Sendable {
 }
 
 /// What the user said about a specific day, overriding the weekly schedule.
+///
+/// The raw values are what gets stored, so they are permanent. A build that does not know
+/// one drops that day's override rather than failing the load — the day simply reads as
+/// an ordinary workday until the newer build sees it again.
 public enum DayOverride: String, Hashable, CaseIterable, Sendable {
     /// A public holiday or paid annual leave: no work, but the day is still earned.
     case paidLeave
     /// No work and no pay — the month total loses a day.
     case unpaidLeave
+    /// The morning is unpaid leave and the afternoon is worked.
+    case unpaidMorning
+    /// The afternoon is unpaid leave and the morning is worked.
+    case unpaidAfternoon
 
     /// Cycles workday → paid → unpaid → workday, which is what a click on the grid does.
+    ///
+    /// The half days are not in the cycle; they are chosen from the day's menu. Put in the
+    /// cycle, they would turn the commonest correction — unpaid back to a workday — from
+    /// one click into three. A half day sits where unpaid leave sits, so the next click
+    /// from either half returns the day to work.
     public static func next(after current: DayOverride?) -> DayOverride? {
         switch current {
         case .none: .paidLeave
         case .paidLeave: .unpaidLeave
-        case .unpaidLeave: nil
+        case .unpaidLeave, .unpaidMorning, .unpaidAfternoon: nil
         }
     }
 
     /// Whether the day still contributes a full day's pay to the month.
     public var isPaid: Bool { self == .paidLeave }
+
+    /// How much of the day's scheduled work still happens.
+    ///
+    /// Not how much it pays. Paid leave works none of the day and still earns, through the
+    /// divisor rather than on the day itself, which is why this is zero for it too. What
+    /// this governs is the clock and everything that rides on the clock: how long the
+    /// window is, what the day pays out on the day, and how much of the allowance it
+    /// carries.
+    public var workedFraction: Double {
+        switch self {
+        case .paidLeave, .unpaidLeave: 0
+        case .unpaidMorning, .unpaidAfternoon: 0.5
+        }
+    }
+
+    /// Part of the day is worked and part of it is leave.
+    public var isHalfDay: Bool { workedFraction > 0 && workedFraction < 1 }
 }

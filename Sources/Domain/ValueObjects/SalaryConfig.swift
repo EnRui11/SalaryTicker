@@ -215,15 +215,29 @@ extension SalaryConfig {
         scheduledWeight(forWeekday: calendar.component(.weekday, from: date))
     }
 
-    /// What the day actually pays out. Any kind of day off pays nothing on the day
-    /// itself; a paid one is already reflected in the higher rate of every working day.
+    /// What the day actually pays out, in whole-day equivalents.
+    ///
+    /// A full day off pays nothing on the day itself — a paid one is already reflected in
+    /// the higher rate of every working day — and a half day of leave pays the half that
+    /// was worked.
     public func payWeight(for date: Date, calendar: Calendar = .current) -> Double {
-        guard dayOverrides[DayKey(date, calendar: calendar)] == nil else { return 0 }
-        return scheduledWeight(for: date, calendar: calendar)
+        scheduledWeight(for: date, calendar: calendar) * workedFraction(for: date, calendar: calendar)
+    }
+
+    /// How much of this day's scheduled work actually happens: all of it, none, or half.
+    ///
+    /// Multiplied into the scheduled weight rather than replacing it, so a half day of
+    /// leave on a day that is already a half day is a quarter of a full one — the same
+    /// arithmetic, with no case of its own to get wrong.
+    public func workedFraction(for date: Date, calendar: Calendar = .current) -> Double {
+        dayOverrides[DayKey(date, calendar: calendar)]?.workedFraction ?? 1
     }
 
     /// The share of the month this day carries in the divisor.
-    /// Paid leave carries none — that is what makes the other days worth more.
+    ///
+    /// Paid leave carries none — that is what makes the other days worth more. Unpaid
+    /// leave, whole or half, stays in: the day was owed, and the part not worked is simply
+    /// not earned, which is how it costs exactly what it should.
     public func divisorWeight(for date: Date, calendar: Calendar = .current) -> Double {
         guard dayOverrides[DayKey(date, calendar: calendar)] != .paidLeave else { return 0 }
         return scheduledWeight(for: date, calendar: calendar)
@@ -245,7 +259,9 @@ extension SalaryConfig {
         /// Days with any work scheduled, halves counted as whole days.
         public var workdayCount: Int
         public var completedWorkdayCount: Int
-        public var daysOffCount: Int
+        /// Leave taken this month, in days: a whole day off counts one and a half day off
+        /// counts a half, so the legend never calls an afternoon a day.
+        public var daysOffCount: Double
     }
 
     /// One pass over the month, producing every figure the ticker needs.
@@ -279,14 +295,18 @@ extension SalaryConfig {
             let override = dayOverrides[DayKey(year: year, month: month, day: dayOfMonth)]
 
             let divisorWeight = (override == .paidLeave) ? 0 : weight
+            // The part of the day actually worked. It is what the allowance is spread
+            // over and what a finished day pays, so a half day of leave carries half of
+            // each — the same number feeding both, as with a scheduled half day.
+            let worked = weight * (override?.workedFraction ?? 1)
             totals.equivalents += divisorWeight
             totals.scheduledWeight += weight
-            totals.earningWeight += (override == nil) ? weight : 0
+            totals.earningWeight += worked
             if divisorWeight > 0 { totals.workdayCount += 1 }
-            if override != nil { totals.daysOffCount += 1 }
+            if let override { totals.daysOffCount += 1 - override.workedFraction }
             if dayOfMonth < today {
                 if divisorWeight > 0 { totals.completedWorkdayCount += 1 }
-                totals.paidWeightBeforeToday += (override == nil) ? weight : 0
+                totals.paidWeightBeforeToday += worked
             }
         }
         return totals
@@ -360,14 +380,14 @@ extension SalaryConfig {
         }
     }
 
-    /// Days this month marked as holiday or leave that fall on a scheduled workday.
-    public func daysOffInMonth(of date: Date, calendar: Calendar = .current) -> Int {
-        Int(sumOverMonth(of: date, calendar: calendar) { day in
+    /// Leave this month on scheduled workdays, in days — a half day off counting a half.
+    public func daysOffInMonth(of date: Date, calendar: Calendar = .current) -> Double {
+        sumOverMonth(of: date, calendar: calendar) { day in
             guard scheduledWeight(for: day, calendar: calendar) > 0,
-                  dayOverrides[DayKey(day, calendar: calendar)] != nil
+                  let override = dayOverrides[DayKey(day, calendar: calendar)]
             else { return 0 }
-            return 1
-        })
+            return 1 - override.workedFraction
+        }
     }
 
     /// Pay for one FULL working day in the month containing `date`.
@@ -402,6 +422,13 @@ extension SalaryConfig {
     ///
     /// A half day runs from clock-in for half the paid minutes and skips lunch entirely —
     /// a Saturday morning does not stop for it. Nil when the day is not worked at all.
+    ///
+    /// A half day of leave is placed by which half was taken, because this window is what
+    /// the ticker follows and the money is the same either way — what differs is WHEN it
+    /// should move. Guessing the morning would count all morning for someone at the
+    /// dentist and then stop at noon, just as they arrived. So an afternoon off keeps the
+    /// start of the day and a morning off keeps the end of it, each half the paid time
+    /// long and each, like any half day, not stopping for lunch.
     public func workingWindow(
         on date: Date,
         calendar: Calendar = .current
@@ -410,21 +437,44 @@ extension SalaryConfig {
         guard seconds > 0 else { return nil }
 
         let start = workStart.resolved(on: date, calendar: calendar)
+        let weight = scheduledWeight(for: date, calendar: calendar)
 
-        if scheduledWeight(for: date, calendar: calendar) < 1 {
-            return (start, start.addingTimeInterval(seconds), false)
+        // Where the day would end with no leave in it: clock-off on a full day, half the
+        // paid time after clock-in on a half one. Not always clock-off — a morning off on
+        // a Saturday half day is the second half OF the Saturday, which ends at one, and
+        // anchoring it to six would put it in an afternoon nobody works.
+        let dayEnd: Date
+        if weight < 1 {
+            dayEnd = start.addingTimeInterval(dailyPaidSeconds * weight)
+        } else {
+            dayEnd = workEnd.resolved(on: date, calendar: calendar)
+            guard dayEnd > start else { return nil }
         }
 
-        let end = workEnd.resolved(on: date, calendar: calendar)
-        guard end > start else { return nil }
-        return (start, end, lunchEnabled)
+        switch dayOverrides[DayKey(date, calendar: calendar)] {
+        case .unpaidMorning:
+            return (dayEnd.addingTimeInterval(-seconds), dayEnd, false)
+        case .unpaidAfternoon:
+            return (start, start.addingTimeInterval(seconds), false)
+        default:
+            return weight < 1 ? (start, dayEnd, false) : (start, dayEnd, lunchEnabled)
+        }
     }
 
-    /// Paid seconds in this particular day's window — halved on a half day, zero when the
-    /// day is marked as leave.
+    /// Paid seconds in this particular day's window — halved on a half day or a half day of
+    /// leave, zero when the whole day is marked as leave.
     public func paidSeconds(on date: Date, calendar: Calendar = .current) -> TimeInterval {
-        guard dayOverrides[DayKey(date, calendar: calendar)] == nil else { return 0 }
-        return dailyPaidSeconds * scheduledWeight(for: date, calendar: calendar)
+        dailyPaidSeconds * payWeight(for: date, calendar: calendar)
+    }
+
+    /// Whether time past the end of this day's window can count as overtime.
+    ///
+    /// Not on an afternoon off. The window ends early there because the rest of the day is
+    /// leave, and overtime is counted from the end of the window — so without this, taking
+    /// the afternoon off would start paying overtime at one o'clock, for the very hours
+    /// that were taken off.
+    public func allowsOvertime(on date: Date, calendar: Calendar = .current) -> Bool {
+        dayOverrides[DayKey(date, calendar: calendar)] != .unpaidAfternoon
     }
 
     public func ratePerSecond(at date: Date, calendar: Calendar = .current) -> Double {
@@ -446,12 +496,14 @@ extension SalaryConfig {
             && dailyPaidMinutes > 0 && !workdays.isEmpty
     }
 
-    /// Whether this specific date is a day the user actually works.
+    /// Whether this specific date is a day the user actually works, any of.
     ///
-    /// A day marked as holiday or leave is not, whichever way the weekly schedule reads.
+    /// A day marked as a whole day of holiday or leave is not, whichever way the weekly
+    /// schedule reads. A half day of leave is: it was a plain "no override" check until
+    /// half days existed, and under that check the half that IS worked would never tick.
     public func isWorkday(_ date: Date, calendar: Calendar = .current) -> Bool {
         isScheduledWorkday(date, calendar: calendar)
-            && dayOverrides[DayKey(date, calendar: calendar)] == nil
+            && workedFraction(for: date, calendar: calendar) > 0
     }
 
     /// Whether the weekly schedule alone puts work on this date, ignoring overrides.

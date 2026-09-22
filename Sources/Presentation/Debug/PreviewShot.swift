@@ -67,17 +67,53 @@ enum PreviewShot {
         var broken = SalaryConfig.default
         broken.monthlySalary = 0
 
-        // A month with a half-day Saturday and both kinds of leave marked.
+        // Leave on a day nobody works is not drawn, so an offset that happened to land on a
+        // Sunday would make its example silently disappear on the day the shots were taken.
+        // It also steps past days already taken: every example is clamped into the month,
+        // so near either end two of them can want the same day.
+        func weekday(
+            _ year: Int, _ month: Int, from day: Int, step: Int, avoiding taken: Set<DayKey>
+        ) -> DayKey {
+            let start = min(max(day, 1), 28)
+            let ahead = Array(stride(from: start, through: step > 0 ? 28 : 1, by: step))
+            let behind = Array(stride(from: start - step, through: step > 0 ? 1 : 28, by: -step))
+            for d in ahead + behind {
+                let key = DayKey(year: year, month: month, day: d)
+                guard !taken.contains(key),
+                      let date = Calendar.current.date(from: DateComponents(year: year, month: month, day: d))
+                else { continue }
+                if (2...6).contains(Calendar.current.component(.weekday, from: date)) { return key }
+            }
+            return DayKey(year: year, month: month, day: start)
+        }
+
+        // A month with a half-day Saturday, both kinds of leave, and both halves of a day
+        // off — one already behind today and one still ahead, since the two are drawn
+        // differently.
         var mixedMonth = SalaryConfig.default
         mixedMonth.workdays.insert(7)
         mixedMonth.halfDays.insert(7)
         let dayOfMonth = Calendar.current.component(.day, from: Date())
         let ym = Calendar.current.dateComponents([.year, .month], from: Date())
         if let year = ym.year, let month = ym.month {
-            mixedMonth.dayOverrides = [
-                DayKey(year: year, month: month, day: max(1, dayOfMonth - 2)): .paidLeave,
-                DayKey(year: year, month: month, day: min(28, dayOfMonth + 3)): .unpaidLeave,
-            ]
+            // Built by assignment and not as a literal. A duplicate key in a dictionary
+            // LITERAL is a crash, not an overwrite, and on about ten days a month two of
+            // these clamped days used to coincide and take `--render-shots` down with them.
+            //
+            // All four go through the same picker. The first two were plain clamped offsets,
+            // and on the 30th of every month both clamped to the 28th — a crash before any
+            // half day existed, and, once built by assignment, a paid holiday silently
+            // overwritten by the unpaid one.
+            var overrides: [DayKey: DayOverride] = [:]
+            for (offset, step, kind) in [
+                (-2, -1, DayOverride.paidLeave), (3, 1, .unpaidLeave),
+                (-5, -1, .unpaidAfternoon), (6, 1, .unpaidMorning),
+            ] {
+                let day = weekday(year, month, from: dayOfMonth + offset, step: step,
+                                  avoiding: Set(overrides.keys))
+                overrides[day] = kind
+            }
+            mixedMonth.dayOverrides = overrides
         }
 
         // A realistic day that already ended an hour ago, so overtime is visibly running

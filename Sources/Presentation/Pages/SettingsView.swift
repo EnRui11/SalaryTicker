@@ -150,10 +150,11 @@ struct SettingsView: View {
                     ),
                     isCurrentMonth: viewModel.isShowingCurrentMonth,
                     onToggleDay: { viewModel.cycleDayOverride($0) },
+                    onSetDay: { viewModel.setDayOverride($0, to: $1) },
                     onStepMonth: { viewModel.stepMonth(by: $0) },
                     onShowCurrentMonth: { viewModel.showCurrentMonth() }
                 )
-                Text("\(text.weekdayHint)\n\(text.calendarHint)")
+                Text("\(text.weekdayHint)\n\(text.calendarHint)\n\(text.halfDayHintMac)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

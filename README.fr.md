@@ -85,6 +85,9 @@ Les deux types de congé ne tombent pas au même endroit, et c'est toute la diff
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Congé **payé**      | Ne vous coûte rien. Le même salaire couvre désormais moins de jours ouvrés, donc chaque jour que vous travaillez *vraiment* vaut un peu plus. Rien ne défile le jour du congé lui-même — sa part est portée par les autres jours. |
 | Congé **non payé**  | Coûte une journée de salaire **de base**. Vos indemnités arrivent quand même intégralement.                                                                                                                        |
+| **Demi-journée** non payée | Coûte une demi-journée de salaire de base. Faites un clic droit sur une date sur le Mac, ou touchez-la longuement sur l'iPhone, et choisissez le matin libre ou l'après-midi libre. |
+
+Le matin et l'après-midi coûtent exactement la même chose ; ce qui change, c'est le moment où le chiffre bouge. Un après-midi libre compte depuis l'arrivée pendant une demi-journée puis s'arrête, un matin libre attend puis court jusqu'au départ — le compteur ne tourne donc jamais pendant votre absence.
 
 Une conséquence à connaître : marquer comme congé payé un jour **déjà passé** fait baisser le total de ce mois-ci, parce que la part de ce jour doit maintenant être gagnée sur les jours qui restent. À la fin du mois, le total retombe sur votre salaire.
 
@@ -190,7 +193,7 @@ Une pause manuelle a brièvement existé. C'était le seul état accumulé de l'
 
 ```bash
 make                 # list every target
-make test            # 276 tests
+make test            # 296 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
 make watch           # the watch app, on the paired watch simulator

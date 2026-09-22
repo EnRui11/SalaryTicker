@@ -321,3 +321,30 @@ private func repository(seededWith json: String? = nil, suite: String) -> UserDe
     #expect(config.liveActivityEnabled)
     #expect(config.monthlySalary == 5_000)
 }
+
+// MARK: - Half days of leave
+
+@Test func bothHalvesOfADayOffSurviveASaveAndLoadRoundTrip() {
+    let store = repository(suite: "test.halfdayleave")
+    var original = SalaryConfig.default
+    original.dayOverrides = [
+        DayKey(year: 2026, month: 8, day: 7): .unpaidMorning,
+        DayKey(year: 2026, month: 8, day: 12): .unpaidAfternoon,
+        DayKey(year: 2026, month: 8, day: 17): .unpaidLeave,
+    ]
+    store.save(original)
+    #expect(store.load() == original)
+}
+
+@Test func theHalvesAreStoredUnderNamesThatWillNotChange() {
+    // The raw values are the file format. Renaming a case would silently turn every half
+    // day already saved into an ordinary workday on the next launch, so the stored words
+    // are pinned here rather than left to whatever the enum happens to be called.
+    let saved = #"{"monthlySalary":5000,"dayOverrides":{"2026-08-07":"unpaidMorning","2026-08-12":"unpaidAfternoon"}}"#
+    let config = repository(seededWith: saved, suite: "test.halfdaynames").load()
+    #expect(config.dayOverrides == [
+        DayKey(year: 2026, month: 8, day: 7): .unpaidMorning,
+        DayKey(year: 2026, month: 8, day: 12): .unpaidAfternoon,
+    ])
+}
+

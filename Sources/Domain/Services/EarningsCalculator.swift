@@ -105,7 +105,9 @@ public enum EarningsCalculator {
         upTo instant: Date,
         calendar: Calendar = .current
     ) -> TimeInterval {
-        guard config.overtimeEnabled, config.overtimeCapSeconds > 0 else { return 0 }
+        guard config.overtimeEnabled, config.overtimeCapSeconds > 0,
+              config.allowsOvertime(on: day, calendar: calendar)
+        else { return 0 }
 
         guard let window = config.workingWindow(on: day, calendar: calendar) else { return 0 }
         let end = window.end

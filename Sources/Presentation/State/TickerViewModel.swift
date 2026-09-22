@@ -274,6 +274,16 @@ public final class TickerViewModel {
         configChanged()
     }
 
+    /// Puts a day straight into one state, which is what the day's menu does.
+    ///
+    /// The click cycles and the menu chooses. The half days are only reachable this way,
+    /// and so is every state for anyone who would rather pick than count clicks.
+    public func setDayOverride(_ key: DayKey, to override: DayOverride?) {
+        guard config.dayOverrides[key] != override else { return }
+        config.dayOverrides[key] = override
+        configChanged()
+    }
+
     /// Take the amount out of the menu bar, or put it back.
     ///
     /// Persisted like any other setting: quitting with it hidden and relaunching to find

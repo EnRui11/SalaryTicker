@@ -85,6 +85,9 @@ Die beiden Arten freier Tage landen an verschiedenen Stellen, und genau dieser U
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Bezahlter** Feiertag | Kostet dich nichts. Dasselbe Gehalt deckt jetzt weniger Arbeitstage ab, also ist jeder Tag, den du *tatsächlich* arbeitest, etwas mehr wert. Am Feiertag selbst tickt nichts — sein Anteil verteilt sich auf die übrigen Tage. |
 | **Unbezahlter** Urlaub | Kostet einen Tag **Grundgehalt**. Deine Zulagen kommen weiterhin in voller Höhe.                                                                                                                           |
+| **Halber Tag** unbezahlt | Kostet einen halben Tag Grundgehalt. Auf dem Mac ein Datum rechtsklicken, auf dem iPhone gedrückt halten, und „Vormittag frei“ oder „Nachmittag frei“ wählen. |
+
+Vormittag und Nachmittag kosten genau dasselbe; anders ist nur, wann sich die Zahl bewegt. Ein freier Nachmittag zählt ab Arbeitsbeginn einen halben Tag lang und hält dann an, ein freier Vormittag wartet und läuft dann bis Feierabend — die Zahl zählt also nie, während du weg bist.
 
 Eine Folge, die man kennen sollte: Markierst du einen **bereits vergangenen** Tag als bezahlten Feiertag, sinkt der Wert für **Diesen Monat**, weil der Anteil dieses Tages nun an den noch kommenden Tagen verdient werden muss. Zum Monatsende landet er wieder bei deinem Gehalt.
 
@@ -190,7 +193,7 @@ Eine manuelle Pause gab es kurzzeitig. Sie war der einzige akkumulierte Zustand 
 
 ```bash
 make                 # list every target
-make test            # 276 tests
+make test            # 296 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
 make watch           # the watch app, on the paired watch simulator

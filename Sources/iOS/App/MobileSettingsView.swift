@@ -139,12 +139,13 @@ struct MobileSettingsView: View {
                     ),
                     isCurrentMonth: viewModel.isShowingCurrentMonth,
                     onToggleDay: { viewModel.cycleDayOverride($0) },
+                    onSetDay: { viewModel.setDayOverride($0, to: $1) },
                     onStepMonth: { viewModel.stepMonth(by: $0) },
                     onShowCurrentMonth: { viewModel.showCurrentMonth() }
                 )
                 .padding(.vertical, 10)
             }
-            CardCaption(text: "\(text.weekdayHint)\n\(text.calendarHint)")
+            CardCaption(text: "\(text.weekdayHint)\n\(text.calendarHint)\n\(text.halfDayHintPhone)")
         }
     }
 

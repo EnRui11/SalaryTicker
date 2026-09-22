@@ -13,8 +13,11 @@ public struct MonthDay: Equatable, Sendable {
     public var isHalfDay: Bool { scheduledWeight > 0 && scheduledWeight < 1 }
     /// Holiday or leave the user marked on this day, if any.
     public let override: DayOverride?
-    /// Scheduled and not overridden — a day that actually earns.
+    /// Scheduled and not overridden — an ordinary working day. A half day of leave is
+    /// neither this nor a day off, and the grid draws it as its own thing.
     public var isWorkday: Bool { isScheduled && override == nil }
+    /// Part of the day was taken as leave and part of it is worked.
+    public var isHalfDayLeave: Bool { override?.isHalfDay ?? false }
     public let isToday: Bool
     /// Strictly before today — already earned, if it was a workday.
     public let isPast: Bool
@@ -42,11 +45,12 @@ public struct MonthOverview: Equatable, Sendable {
     /// settings page can never disagree. Paid holidays are not among them.
     public let workdayCount: Int
     public let completedWorkdayCount: Int
-    public let daysOffCount: Int
+    /// Leave this month in days; a half day off counts a half.
+    public let daysOffCount: Double
 
     public init(
         leadingBlanks: Int, days: [MonthDay],
-        workdayCount: Int, completedWorkdayCount: Int, daysOffCount: Int = 0
+        workdayCount: Int, completedWorkdayCount: Int, daysOffCount: Double = 0
     ) {
         self.leadingBlanks = leadingBlanks
         self.days = days
@@ -85,7 +89,7 @@ extension SalaryConfig {
         var days: [MonthDay] = []
         var workdayCount = 0
         var completedCount = 0
-        var daysOff = 0
+        var daysOff = 0.0
 
         for dayOfMonth in range {
             guard let dayDate = calendar.date(byAdding: .day, value: dayOfMonth - 1, to: firstOfMonth)
@@ -103,7 +107,7 @@ extension SalaryConfig {
                     workdayCount += 1
                     if isPast { completedCount += 1 }
                 }
-                if override != nil { daysOff += 1 }
+                if let override { daysOff += 1 - override.workedFraction }
             }
 
             days.append(

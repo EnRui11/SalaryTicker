@@ -21,6 +21,9 @@ private func sample() -> SalaryConfig {
     config.dayOverrides = [
         DayKey(year: 2026, month: 8, day: 31): .paidLeave,
         DayKey(year: 2026, month: 12, day: 25): .paidLeave,
+        // Both halves, so the QR link and the watch are proven to carry them too.
+        DayKey(year: 2026, month: 9, day: 2): .unpaidMorning,
+        DayKey(year: 2026, month: 9, day: 3): .unpaidAfternoon,
     ]
     config.goals = [
         SavingsGoal(name: "Trip", amount: 10_000, startedAt: Date(timeIntervalSince1970: 1_780_000_000)),

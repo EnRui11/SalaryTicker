@@ -85,6 +85,9 @@ Os dois tipos de folga caem em lugares diferentes, e a diferença é justamente 
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Feriado **pago**       | Não custa nada. O mesmo salário agora cobre menos dias úteis, por isso cada dia que *realmente* trabalha vale um pouco mais. Nada é contado no próprio feriado — a parte dele é carregada pelos outros dias. |
 | Folga **sem pagamento** | Custa um dia de salário **base**. Os seus subsídios continuam a chegar por inteiro.                                                                                                                          |
+| **Meio dia** sem pagamento | Custa meio dia de salário base. No Mac, clique com o botão direito numa data; no iPhone, toque sem soltar; depois escolha manhã ou tarde de folga. |
+
+A manhã e a tarde custam exatamente o mesmo; o que muda é quando o número se mexe. Uma tarde de folga conta desde a entrada durante meio dia e para; uma manhã de folga espera e depois corre até à saída — por isso o contador nunca avança enquanto está ausente.
 
 Uma consequência que vale conhecer: marcar como feriado pago um dia que **já passou** faz o acumulado do mês cair, porque a parte daquele dia tem agora de ser ganha nos dias que ainda faltam. No fim do mês, tudo volta a bater com o seu salário.
 
@@ -190,7 +193,7 @@ Uma pausa manual existiu por pouco tempo. Era o único estado acumulado da app e
 
 ```bash
 make                 # list every target
-make test            # 276 tests
+make test            # 296 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
 make watch           # the watch app, on the paired watch simulator

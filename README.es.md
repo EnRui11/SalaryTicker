@@ -85,6 +85,9 @@ Los dos tipos de día libre caen en sitios distintos, y esa diferencia es justo 
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Festivo **pagado**     | No te cuesta nada. El mismo sueldo cubre ahora menos días laborables, así que cada día que *sí* trabajas vale un poco más. En el festivo mismo no corre nada: su parte viaja en los demás días. |
 | Permiso **sin sueldo** | Cuesta un día de salario **base**. Tus complementos llegan igual, íntegros.                                                                                                                    |
+| **Medio día** sin sueldo | Cuesta medio día de salario base. Haz clic derecho en una fecha en el Mac, o mantenla pulsada en el iPhone, y elige mañana o tarde libre. |
+
+La mañana y la tarde cuestan exactamente lo mismo; lo que cambia es cuándo se mueve el número. Con la tarde libre cuenta desde la entrada durante medio día y se para; con la mañana libre espera y luego corre hasta la salida, así que nunca cuenta mientras no estás.
 
 Una consecuencia que conviene conocer: marcar como festivo pagado un día **que ya ha pasado** hace que el acumulado del mes baje, porque la parte de ese día ahora hay que ganarla en los días que quedan por delante. Al final del mes vuelve a cuadrar con tu sueldo.
 
@@ -190,7 +193,7 @@ Hubo una pausa manual durante un tiempo breve. Era el único estado acumulado de
 
 ```bash
 make                 # list every target
-make test            # 276 tests
+make test            # 296 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
 make watch           # the watch app, on the paired watch simulator

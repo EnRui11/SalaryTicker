@@ -85,6 +85,9 @@ make watch    # the watch, on the paired watch simulator
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | **有給**休     | 何も損しない。同じ給与がより少ない勤務日に配られるので、実際に*働く*一日一日が少しだけ高くなる。休みの当日は何も刻まない。その取り分は他の日に乗る。 |
 | **無給**休     | **基本給**が1日分減る。手当はそれでも全額届く。                                                                                                 |
+| **半日**無給 | 基本給が半日分減る。Mac では日付を右クリック、iPhone では長押しして、午前休か午後休を選ぶ。 |
+
+午前休と午後休で減る額はまったく同じだ。違うのは数字が動くタイミングである。午後休なら出勤から半日分だけ数えて止まり、午前休なら待ってから退勤まで数える。だから、いない間に数字が動くことはない。
 
 知っておく価値のある帰結が一つある。**すでに過ぎた**日を有給休にすると、今月の累計は下がる。その日の取り分を、これから先の日で稼ぎ直すことになるからだ。月末には元どおり給与額に着地する。
 
@@ -190,7 +193,7 @@ this month        = days already earned × daily pay + today
 
 ```bash
 make                 # list every target
-make test            # 276 tests
+make test            # 296 tests
 make install         # the Mac app, into /Applications
 make run             # the iPhone app, on the simulator
 make watch           # the watch app, on the paired watch simulator
